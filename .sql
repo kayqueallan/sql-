@@ -217,7 +217,7 @@
 
 6. // TIPOS DE DADOS // 
 
-    -> 
+    ->  Tipos de Dados: Numericos Exatos (inteiros ou decimais);
 
     +-------------|-------------------------------------------------------------------------|------------------------+
     | Tipo        | Intervalo                                                               |     Armazenamento      |   
@@ -240,13 +240,1693 @@
 
 
 
+    -> Tipos de dados: Numericos Aproximados;
+
+    +---------+----------------------------------------------------------+-------------------------------+
+    |   Tipo  |                        Intervalo                         |        Armazenamento          |
+    +---------+----------------------------------------------------------+-------------------------------+
+    |  float  | -1,79E+308 a -2,23E-308, 0 e 2,23E-308 a 1,79E+308       | Depende do valor de n         |
+    |  real   | -3,40E+38 a -1,18E-38, 0 e 1,18E-38 a 3,40E+38           | 4 bytes                       |
+    +---------+----------------------------------------------------------+-------------------------------+
 
 
+
+    -> Tipos de Dados: Cadeia de Caracteres;
+
+    +-----------+--------------------------------------------------------------------+
+    |   Tipo    |                        Descrição                                   |
+    +-----------+--------------------------------------------------------------------+
+    | char(n)   | Caracteres de tamanho fixo. Máximo 8000 caracteres                 |
+    | varchar(n)| Caracteres de tamanho variável. Máximo 8000 caracteres             |
+    | varchar(max) | Caracteres de tamanho variável. Máximo 1.073.741.824 caracteres |
+    +-----------+--------------------------------------------------------------------+
+
+
+
+    -> Tipos de Dados : Cadeias de Caracteres Unicode;
+
+    +--------------+--------------------------------------------------------------------+
+    |   Tipo       |                        Descrição                                   |
+    +--------------+--------------------------------------------------------------------+
+    | nchar(n)     | Caracteres de tamanho fixo. Máximo 4000 caracteres                 |
+    | nvarchar(n)  | Caracteres de tamanho variável. Máximo 4000 caracteres             |
+    | nvarchar(max)| Caracteres de tamanho variável. Máximo 536.870.912 caracteres      |
+    +-----------+-----------------------------------------------------------------------+
+
+
+
+
+    -> Tipos de Dados: Cadeias de Caracteres Binarios;
+
+    +----------------+-----------------------------------------------------------------------+-----------------------------+
+    |   Tipo         |                        Descrição                                      |      Use quando             |
+    +----------------+-----------------------------------------------------------------------+-----------------------------+
+    | binary(n)      | Dados binarios de comprimento fixo com um tamanho de n bytes, em que  | Os tamanhos das entradas de |
+    |                | n e um valorde 1 a 8.000. O tamanho do armazenamento e de n bytes     | dados forem consistentes    |
+    +----------------+-----------------------------------------------------------------------+-----------------------------+
+    |                |                                                                       | Os tamanhos das entradas de |
+    | varbinary(n)   | Dados binarios de tamanho variavel. n pode ser um valor de 1 a 8.000  |  dados de coluna variarem   |
+    |                |                                                                       | consideralvemente           |
+    +----------------+-----------------------------------------------------------------------+-----------------------------+
+    | varbinary(max) | tamaho de armazenamento maximo e de 2^31 - 1 byte                     | Os tamanhos das entradas de |
+    +----------------+-----------------------------------------------------------------------+-----------------------------+
+
+
+
+
+    -> Tipos de Dados: Data e Hora
+
+    +-------------------+---------------------------------------+---------------------------+---------------------+
+    | Tipo              |                Valores                |          Formato          | Valor Padrão        |
+    +-------------------+---------------------------------------+---------------------------+---------------------+
+    | date              | 0001-01-01 a 9999-12-31               | AAAA-MM-DD                | 1900-01-01          |
+    | datetime          | 1753-01-01 a 9999-12-31               | AAAA-MM-DD hh:mm:ss       | 1900-01-01 00:00:00 |
+    |                   | Hora 00:00:00 a 23:59:59.997          |                           |                     |
+    | datetime2         | 0001-01-01 a 9999-12-31               | AAAA-MM-DD hh:mm:ss       | 1900-01-01 00:00:00 |
+    |                   | Hora 00:00:00 a 23:59:59.9999999      | [Segundos fracionários]   |                     |
+    | datetimeoffset    | 0001-01-01 a 9999-12-31               | AAAA-MM-DD hh:mm:ss       | 1900-01-01 00:00:00 |
+    |                   | Hora 00:00:00 a 23:59:59.9999999      | [.nnnnnnn] [{+|-}hh:mm]   |                     |
+    | smalldatetime     | 1900-01-01 a 2079-06-06               | AAAA-MM-DD hh:mm:ss       | 1900-01-01 00:00:00 |
+    |                   | Hora 00:00:00 a 23:59:59              | [Segundos arredondados]   |                     |
+    | time              | 00:00:00.0000000 a 23:59:59.9999999   | hh:mm:ss[.nnnnnnn]        | 00:00:00            |
+    +-------------------+---------------------------------------+---------------------------+---------------------+
+
+
+
+
+
+
+
+
+7. // Operadores de Comparacao // 
+
+        ->  = (igual a);
+        ->  <> (diferente de);
+        ->  > (maior que);
+        ->  < (menor que);
+        ->  >= (maior ou igual a);
+        ->  <= (menor ou igual a);
+        
+
+
+    alguns exemplos:
+
+    SELECT * 
+        FROM Person.Person 
+    WHERE BusinessEntityID = 10;
+
+        -> ira retornar todos os dados da tabela Person.Person onde o BusinessEntityID for igual a 10;
+
+    
+    SELECT * 
+        FROM Person.Person
+    WHERE BusinessEntityID <> 10;
+
+        -> ira retornar todos os dados da tabela Person.Person onde o BusinessEntityID for diferente de 10;
+
+
+
+
+
+
+
+8. // Operadores Logicos //
+
+    -> serve para testar uma condicao, e normalmente teremos um tipo de retorno sendo true ou false, ou desconhecido, nao temos tipo boolean, trabalhamos com bit que ira retornar 0 ou 1;
+
+    -> ALL (SUBQUERY)
+    -> SOME | ANY (SUBQUERY)
+    -> EXISTS (SUBQUERY)
+
+
+    - Logicos: AND, OR, NOT; 
+
+    - BETWEEN <expressao1> AND <espressao2>: testa um intervalo;
+
+    - IN (<lista de valores>): testa presenca na lista; 
+
+    - IS NULL OU IS NOT NULL: Testa nulos;
+
+    - LIKE: Testa conteudo de string de caracteres;
+
+
+        ex: Selecione os funcionarios do estado de MG ou RJ que ganha uma comissao maior ou igual a 100
+
+            SELECT nome 
+                FROM funcionario
+            WHERE estado = 'MG' or 'RJ' and comissao >= 100
+
+
+
+
+    BETWEEN:
+            -> Permite testar se um intervalo determinado campo assume o valor dentro de um intervalo especificado. E utilizado por ser mais pratico do que o teste de >= e <=
+
+        EX: 
+            SELECT * 
+                FROM Funcionarios
+            WHERE salario BETWEEN 1800 AND 2000
+
+            -> E bem mais legivel que: 
+
+            SELECT *
+                FROM funcionarios
+            WHERE Salario >= 1800 AND salario <= 2000
+
+
+        --> exemplo: Selecione os funcionarios que ganham entre 2000 e 3500 no departamento de informatica
+
+            SELECT nome , salario
+                FROM funcionario
+            WHERE salario BETWEEN 2000 AND 3500 and cod-depto = 1
+
+
+
+        IN: 
+            -> Verifica se um elemento pertence a um conjunto, isto e, se um campo assume o valor de algum membro de uma lista de valores. E utilizado para substituir grandes exmpressoes de OR para o mesmo campo.
+
+
+        EX: 
+            SELECT *
+                FROM Funcionario 
+            WHERE cod_depto IN (1,2)
+
+                -> e bem mais legivel que 
+
+            SELECT * 
+                FROM Funcionario
+            WHERE cod_depto = 1 OR cod_depto = 2 
+
+
+
+            --> exemplo selecione os funcionarios cujo cargo e contador ou gerente.
+
+            SELECT nome, cargo
+                FROM Funcionario
+            WHERE cargo IN ('gerente', 'contador')
+
+
+    
+        IS NULL / IS NOT NULL
+
+            ex: Selecione os funcionarios cujo estado ou cidade e nula 
+
+                SELECT nome 
+                    WHERE estado is null or cidade is null Funcionario
+
+
+
+    
+    LIKE | NOT LIKE  
+            -> Operador LIKE e usado quando se deseja obter colunas de um registro que sigam um determinado padrao pre-especificado.
+
+            -> Quando se quer saber os nomes de todos os funcionarios cujo nome comeca com JOAO ou termina com SILVA, usa-se o LIKE.
+
+            -> O caracter % dentro da expressao LIKE tem a mesma funcao do caracter * no windows, assim como o _(undescore) tem a semelhanca com o ? do windows 
+
+        ex: 
+            SELECT NOME 
+                FROM Funcionario
+            where nome like 'JOAO%'
+
+
+            SELECT * 
+                FROM Funcionario
+            WHERE NOME LIKE '_ _ R%'
+
+            -> (Obs: a terceira letra do nome do funcionario deve ser R)
+
+
+        --> exemplo: Selecionar os funcionarios cujo o nome tem a letra u como segundo caractere
+
+            SELECT nome 
+                FROM Funcionario
+            WHERE nome LIKE '_u%' Funcionario
+
+
+
+
+
+
+
+
+9. // INFORMATION SHEMA //
+
+    -> O que seria o "Person.Person", o que significa a primeira palavra.segundaPalvra? aqui trabalhase com algo que chama shema, o shema e tambem uma maneira de organizar tabelas, nao temos que pensar que ele seja somente isso, exemplo: se tivermos tabela: pessoa, contanto e endereco, e importante deixarmos isso agrupado, teremos maior manipulacao e controle sobre isso, entao as tabelas: Person.Person, Person.Password, Pessoa.EmailAddress -> isso tudo esta relacionado a um Shema Person;
+
+        ->   SELECT * FROM INFORMATION_SHEMA.TABLES
+                - Teremos acessos a todas as tabelas contidas no banco para visualizar melhor, veremos a coluna de catalogo, table schema, table name e table type;
+
+
+        ->  SELECT * FROM INFORMATION_SCHEMA.COLUMS
+                - Teremos acesso a todas as colunas contidas no banco para visualizar melhor, veremos a coluna de table catalog, table schema, table name, column name, data type, character maximum length, is nullable (!! Atencao: se fizermos isso em uma banco de dados com um numero gigantesco de tabelas e colunas teremos um serio bug de consulta, devido o tamanho);
+
+
+
+        ->  SELECT * FROM INFORMATION_SCHEMA.COLUMS
+                WHERE TABLE_NAME = 'Person.Person'
+                    - Teremos acesso a todas as colunas contidas na tabela Person.Person para visualizar melhor, fizemos um filtro para que ele retorne somente as colunas da tabela Person.Person, veremos a coluna 
+
+
+
+
+        -> Vamos supor que no azure estivesse selecionado no master, e tivessemos um banco de dados chamdo AdventureWorks, podiamos selecionar esse banco dentro do script mesmo, exemplo: 
+
+            USE AdventureWorks2019 GO
+
+            SELECT * FROM Person.Person
+                WHERE BusinessEntityID > 500
+
+
+        -> Podemos tambem fazer diretamente no select: 
+
+            SELECT * FROM AdventureWorks2019.Sales.Store;
+                --> isso esta selecionando a base de dados, depois esta selecionando o shema e ai sim o nome da tabela;
+
+
+
+
+
+
+
+
+10. // Inner Join //
+
+    -> O que seria os joins, seria basicamente fazer juncoes, pegarmos uma coluna ou uma tabela e linkar a uma outra coluna ou tabela, ou trazer tudo junto depende do caso e claro;
+
+    SQL - DML: JUNCOES 
+
+            TIPOS DE JUNCOES: 
+                
+                -> inner join (equivalente a sintaxe tradicional da juncao)
+
+                -> left outer join 
+
+                -> right outer join 
+
+                -> full outer join 
+
+            CONDICOES: 
+                -> on <predicado>
+
+        -> teremos na primeira consulta os cinco primeiros registro da tabela Person.Person e na segunda consulta os cinco primeiros registros da tabela Person.EmailAddress, e se quisermos juntar essas duas tabelas?
+
+        -> a teorias dos joins segue o conceito de conujuntos em matematica, ou seja, teremos por exemplo duas tabelas, onde tera o conjunto da esquerda e da direita, notem que no meio dela teremos uma intercecao, teremos elementos que serao comuns para a tabela da esquerda e tabela da direita, e vamos utilizalos para fazer essa juncao, para que monte essa conexao com uma tabela com a outra;
+
+        exemplo:
+            
+        INNER JOIN 
+
+            1- METODO   SELECT coluna1, coluna2 ...
+                            FROM tabela1 INNER JOIN tabela2
+                        ON tabela1.coluna = tabela2.colunal;
+
+                obs: pode se usar somente o JOIN, ja que r o join default 
+
+                -> SINTAXE ALTERNATIVA
+
+            2- METODO   SELECT coluna1, coluna2...
+                            FROM tabela1, tabela2
+                        WHERE tabela1.coluna = tabela1.coluna;
+
+            -> E melhor se utilizar o primeiro metodo poque nele e separado a condicao da juncao, ou seja nele podemos colocar o WHERE e fazer com que nao fique embolado assim como o debaixo.
+
+
+            --> exemplo: Selecione os nomes dos deptos e de seus funcionarios com os cargos, em ordem alfabetica de nome do depto e do funcionario.
+
+                    SELECT nome_depto, nome, cargo 
+                        FROM Depto A JOIN Funcionario B
+                    ON A.cod_depto = B.cod_depto 
+                    ORDER BY 1,2
+
+
+
+
+
+
+
+
+11. // Left Join //
+
+        ->  Trara toda a tabela da esquerda e o que for intercessao com a tabela da direita, ou seja, o inner join traz o que for intercessao entre as duas;
+
+        LEFT JOIN 
+
+            -> Vai levar a intercessao como o do INNER JOIN mas tambem o que esta na esquerda.
+
+            --> exemplo: selecione os nomes dos funcionarios e de seus dependentes, exibindo tambem funcionarios sem dependentes, em ordem alfabetica dos nomes.
+
+                SELECT nome, nome_dependente 
+                    FROM Funcionario A LEFT OUTER JOIN Dependente B 
+                    ON A.matricula = B.matricula
+                ORDER BY 1,2
+
+                -> OBS: podemos escrever apenas LEFT JOIN 
+
+            -> explicacao: exemplo no INNER JOIN, quando fizemos a juncao de dependente e funcionario o que acontece so apareceram aqueles funcionarios, so vai aparerecer os funcionarios que tiverem dependente, mas se fizemos um left join teremos a aparicao de todo o conjunto da esquerda, ou seja, nao so a intercessao de funcionario com dependente, mas digamos que basta ser funcionario para poder ser exibido, mas ai caso ele nao tenha dependente, como sera preenchido? Vai aparecer uma ausencia da informacao.
+
+            -> O numero de registros exibidos em um left join e no minimo igual a um INNER JOIN, sendo na maioria das vezes maior, pois o LEFT JOIN engloba o INNER JOIN.
+
+
+
+
+
+
+
+
+
+12. // RIGHT JOIN // 
+
+            -> Tem o mesmo conceito que LEFT JOIN, so que e um pouco utilizado. incorpora tambem o inner join so que agora com acrescento de aparicao de quem for a direita tambem. quem manda e a tabela a direita
+
+            --> exemplo: Selecione os nomes dos funcionarios e de seus dependentes exibindo tambem funcionarios sem dependentes, em ordem afabetica dos nomes.
+
+                SELECT nome, nome_dependente 
+                    FROM Dependente A RIGHT OUTER JOIN Funcionario B
+                    ON A.matricula = B.matricula 
+                ORDER BY 1,2
+
+
+
+
+
+
+
+
+
+13. // FULL JOIN // 
+
+            -> Ele e a juncao de left e right, ou seja basta estar na esquerda ou direita, ou tambem na intercessao.
+
+            --> exemplo: Selecione os nomes dos departamentos e dos funcionarios exibindo departamentos sem funcionarios e tambem funcionarios sem departamentos, em ordem alfabetica dos nomes.
+
+                SELECT nome_depto, nome 
+                    FROM Depto A FULL OUTER JOIN Funcionario B 
+                    ON A.cod_depto = B.cod_depto
+                ORDER BY 1,2
+            
+            -> explicacao: primeiro ele pega a intercessao depois, depois departamento sem funcionario e depois funcionario sem departamento.
+
+            RESULTADO: 
+
+                -> Full join e a soma do left join com o right  join
+
+                -> Full join e diferente do produto cartesiano pois nao gera combinacoes aleatorias.
+
+
+
+
+
+
+
+
+
+14. // UNION - (UNIAO) //
+
+            -> Agrega resultados de comando SELECT. Deve existir compatibilidade de colunas e linhas duplicadas sao desprezadas.
+
+            -> UNION ALL: nao elimina tuplas duplicadas 
+
+            -> Equivalente a operacao de uniao da teoria dos conjuntos. Pode atuar em tabels diferentes desde que a compatibilidade seja respeitada.
+
+                -> para se fazer a uniao os campos entre elas tem que ser compativeis, e quando faz a uniao ele elimina as linhas duplicadas, exemplo fazer uma uniao de uma tabela de um banco A e de um banco B, entao queremos dar uma UNION nessas duas tabelas entao na base de clientes do banco A e do Banco B, vai eliminar os clientes que estao cadastrados em A e B e vai ter um registro unico daquele cliente.
+
+            --> exemplo: Selecione os nomes e estados dos funcionarios de MG e do RJ, marcando os de MG com asteristico 
+
+            SELECT nome, estado, '*'
+                FROM Funcionario 
+                WHERE estado = 'MG' UNION 
+            SELECT nome, estado, '' 
+                FROM Funcionario
+                WHERE ESTADO = 'RJ'
+
+
+
+
+
+
+
+
+15. // Funcoes de Agreagacao // 
+
+        -> COUNT(*): contador de linhas da tabela
+
+        -> COUNT (DISTINCT atributo): contador de linhas com ocorrencias diferentes de um atributo.
+
+        -> AVG : media aritimetica
+
+        -> SUM: soma de valores 
+
+        -> MAX: valor maximo
+
+        -> MIN: valor minimo
+
+        
+        AVG: MEDIA 
+                
+                exemplo: Calcule a media de salario dos funcionarios
+
+                SELECT 
+                    AVG(Salario) 
+                AS Media
+
+
+                --> obs: recurso novo que e o a questao do apelido do campo, se nao colocar esse apelido do campo, na maior parte dos bancos de dados, como nao e uma coluna original da tabela aparece com nome vazio, e bom renomear para ficar mais palatavel.
+
+
+
+        SUM: SOMATORIO
+
+                exemplo: Calcule o somatorio dos salarios do depto 1
+
+                SELECT 
+                    SUM(Salario)
+                FROM Funcionario WHERE cod_depto = 1
+
+
+                --> obs: detalhe aqui que nao colocamos o nome do campo, entao ele apareceu com o nome do campo sendo nulo com resultado abaixo, o bom seria adicionar para que ficasse melhor entendimento.
+
+            
+
+        MIN e MAX: 
+
+                exemplo: selecione os valores do maior e menor salarios do depto 1
+
+            SELECT MAX(Salario), AS Maior
+                MIN(Salario) AS Menor
+            FROM Funcionario WHERE cod_depto = 1
+
+
+
+        COUNT 
+
+            -> Efetua a contagem de resistros de uma tabela, ou seja, contar em nivel de linha ex: quantos registros ou quantas tuplas aquela tabela possui, agora o SUM olha o conteudo da tabela a soma de conteudos.
+
+            -> A sua forma mais usual e o COUNT(*), onde se contam as linhas (ocorrencias) de uma tabela 
+
+            -> Existe tambem a forma COUNT(DISTINCT nome-do-campo) utilizada a contagem de direfentes ocorrencias de um campo. Neste caso, o campo nao e chave primaria, pois esta ja tem as ocorrencias distintas por obrigacao.
+
+                
+                exemplo utilizando COUNT: Calcule a quantidade de funcionarios, excluindo os gerentes.
+
+                    SELECT COUNT(*) AS Qtde 
+                        From Funcionario 
+                    WHERE cargo <> 'gerente'
+
+
+
+        DISTINCT
+
+            -> operador DISTINCT nome-do-campo elimina ocorrencias repetidas de um mesmo campo
+
+            -> Nao faz sentido utilizar DISTINCT para um campo que ja seja chave primaria
+
+            
+                EX: nomes das cidades ibde se tem clientes, sem repeticoes de cidades
+
+                    SELECT DISTINCT Cidade FROM Clientes
+
+
+                EX: So sera considerada uma repeticao quando o estado e cidade forem os mesmos
+
+                    SELECT DISTINCT Estado, Cidade FROM Clientes
+
+
+                -> exemplo: Selecione os distintos cargos existentes 
+
+                    SELECT DISTINCT Cargo 
+                        FROM Funcionario
+
+        
+
+        COUNT DISTINCT 
+
+            -> Calcula as diferentes coisas existentes
+
+                -> exemplo: Selecione a quantidade de distintos cargos
+            
+
+            SELECT COUNT (DISTINCT Cargo) AS QtdeCargos 
+                FROM Funcionario
+
+
+
+        ORDER BY (ORDENACAO)
+
+            -> A expressao ORDER BY e utilizada quando se pretende exibir os registros em uma determinada ordem,seja esta crescente (ASC - Default) ou decrescente (DESC).
+
+            -> Caso a expressao ORDER BY nao esteja presente, os registros serao exibidos na ordem em que foram inseridos na tabela.
+
+            -> os campos que constam da expressao ORDER BY devem obrigatoriamente estar presentes na expressao SELECT
+
+            -> Nao e necessario possuir um indice fisicamente criado e composto pelos campos da ordernacao para usar o ORDER BY. No entanto, caso o indice exista o comando sera executado mais rapido.
+
+            -> Pode-se utilizar numeros indicando que a ordenacao sera feita por determinado campo de acordo com a ordem do SELECT.
+
+                --> exemplo: Selecione o codigo de depto e nome do funcionariao, em ordem alfabetica de ambos.
+
+                    SELECT Cod_Depto, Nome 
+                        FROM Funcionario
+                    ORDER BY Cod_Depto, Nome
+
+                    SELECT Cod_Depto, Nome 
+                        FROM Funcionario 
+                    ORDER BY 1,2
+
+                    --> PODE SE FAZER DESSAS DUAS FORMAS 
+
+                    
+                    --> exemplo - 2: Selecione o codigo do depto, o salario e o nome, em ordem crescente do codgio e decrescente do salario.
+
+                    SELECT Cod_Depto, Salario Nome 
+                        FROM Funcionario
+                    ORDER BY 1 ASC, 2 DESC
+
+                    SELECT Cod_Depto, Salario, Nome 
+                        FROM Funcionario
+                    ORDER BY 1,2 DESC 
+
+
+
+        GROUP BY ( AGRUPAMENTO )
+
+            -> Em um SELECT tradicional, as linhas da tabela sao exibidas de maneira analitica. Existe a expressao GROUP BY que permite que se faca uma consolidacao, dos registros, fazendo a sintesi dos mesmos por um conjunto de campos.
+
+            -> A funcionalidade do GROUP BY equivale a das informacoes de subtotais usadas em relatorios. Ao se fazer o agrupamento por um determinado campo de quebra, perde-se a informacao detalhada a nivel de registros. Novas informacoes sao geradas a partir da totalizacao dos registros.
+
+            -> Os campos da expressao GROUP BY devem sempre fazer parte da expressao SELECT
+
+                --> exemplo: Selecione a quatidade de funcionarios por cargo;
+
+                SELECT Cargos, COUNT (*) as Qtde
+                    FROM Funcionario
+                GROUP BY Cargo 
+
+
+                --> exemplo - 2: Selecione o somatorio de salarios por departamento por depto, em ordem decrescente da soma 
+
+                SELECT Cod_Depto, sum(Salario) as Soma 
+                    FROM Funcionario 
+                GROUP BY Cod_Depto ORDER BY 2 desc 
+
+                    -> explicacao: selecionamos o codigo do departamento e o somatorio de salarios, agrupado pelo codigo do departamento, em ordem 2 desc que no caso e o salario em ordem decrescente.
+
+        
+
+        HAVING (Filtro por agrupamento)
+
+            -> A expressao HAVING so pode aparecer depois da expressao GROUP BY, funcionando como um filtro para o agrupamento.
+
+            -> Resumidamente, o HAVING e o WHERE do GROUP BY
+
+            -> Atraves do HAVING pode-se selecionar apenas os agrupamentos desejados que atendam determinadas condicoes, Os campos que fazem o filtro do HAVING nao precisam necessariamente estar selecionados.
+
+                --> exemplo: Selecione a quantidade de funcionarios por departamento por depto, mas apenas para os departamentos com mais de 3 funcionarios.
+
+                SELECT Cod_depto, COUNT(*) as Qtde 
+                    FROM Funcionario
+                GROUP BY Cod_depto HAVING Count(*) > 3
+
+                    -> o having ai tem que ter um count maior que 3, o agupamento de dois funcionarios nao sera exibido
+
+
+                --> exemplo: Selecione o maior salario por cargo, mas apenas para os cargos com mais de 1 funcionario, em ordem alfabetica do cargo
+
+                    SELECT Cargo, max(Salario) as Maior 
+                        FROM Funcionario
+                    GROUP BY Cargo having count(*) > 1 Order by Cargo
+
+                    -> o having ai mostra que devemos ter mais de um funcionario para que seja exibido, e tambem depois faz a ordenacao de acordo com cargo, em ordem alfabetica; obs: sempre vem o group by primeiro e depois o order by
+
+                
+                // DIFERENCA ENTRE WHERE E HAVING // : 
+
+                WHERE;
+
+                SELECT departament_id, count(*)
+                    FROM employees e 
+                        WHERE manager_id = 100
+                        GROUP BY departament_id
+                    ORDER BY departament_id
+                
+                -> Clausula WHERE restringe as tuplas da relacao 
+
+                -> Posteriormente os grupos sao criados 
+
+                -> Funcao do grupo e aplicada.
+
+
+                HAVING;
+
+                SELECT departament_id, count(*)
+                    FROM employees e 
+                    GROUP BY departament_id
+                    HAVING count(*) > 1
+                ORDER BY departament_id;
+
+                -> Os grupos sao criados 
+
+                -> Funcao de grupo e aplicada 
+
+                -> a clausula HAVING restringe os grupos aos que se enquadram no criterio da clausula HAVING (count (*) > 1)
+
+
+
+
+
+
+
+
+
+16. // CASE WHEN THEN ELSE END // 
+
+        -> para concatenacao de Strings podemos utilizar o operador +, como o exemplo abaixo: 
+
+            SELECT BusinessEntityID, 
+                PersonType, 
+                NameStyle, 
+                Title, 
+                FirstName, 
+                MiddleName, 
+                LastName,
+
+                FirstName + ' ' + MiddleName + ' ' + LastName AS [Nome Completo]
+
+            FROM Person.Person
+
+
+        -> agora para trazer algumas estrituras condicionais utilizaremos o case, suponhamos que o a classe title, ao inves de ser "Mr." ou "Ms.", mudaremos para visualizar do jetio que queremos, exemplo: 
+
+                SELECT BusinessEntityID, 
+                        PersonType, 
+                        NameStyle, 
+                        Title, 
+                    
+                    CASE TITLE 
+                        WHEN 'Ms.' THEN 'Sra.'
+                        WHEN 'Mr.' THEN 'Sr'
+                        ELSE ' '
+                    END AS TITULO  
+
+                FROM Person.Person
+
+                    --> O que esta acontecendo aqui e que caso(case) o titulo(coluna) seja(WHEN) 'Ms.' entao(THEN) sera 'Sra.', caso seja 'Mr.' entao sera 'Sr', caso nao seja nenhum dos dois sera ' '. e portanto o fim(END) que ira renomear a coluna para TITULO.
+
+
+                outros exemplos: 
+
+                CASE 
+                    WHEN Rate < 12.000 THEN 'SALARIO MINIMO'
+                    WHEN Rate BETWEEN 12.000 AND 20.000 THEN 'SALARIO MEDIO'
+                    WHEN Rate > 20.000 THEN 'SALARIO ALTO'
+                END AS Faixa_Salarial
+
+                ------------------------------------------------------
+
+                CASE 
+                    WHEN Rate < 12.000 THEN (Rate * 3)
+                    WHEN Rate BETWEEN 12.000 AND 20.000 THEN (Rate * 1.1)
+                    WHEN Rate > 20.000 THEN (Rate * 1.05)
+                END AS [COMPARACAO NUMERAL]
+
+
+
+
+
+
+
+
+17. // CONVERSOES (CAST, CONVERT, TRY_CAST, TRY_CONVERT) // 
+
+
+        -> Em operadores aritimeticos vimos que se pegarmos um numero e tentar somar com outro numero teremos uma soma, mas se pegarmos isso com valores do tipo texto temos uma concatenacao, mas suponhamos que o texto e o valor venha desse jeito;
+
+        SELECT '102343'
+            ---> Veremos que esse select e do tipo texto, mas se quisersemos fazer alguma adicao ai como fariamos isso? 
+
+        SELECT (SELECT '35') + (SELECT '17')
+            -> Isso ira gerar o resultado '3517', ou seja, uma concatenacao, mas se quisermos fazer uma adicao como faria isso? poderiamos fazer um cast passando isso para um tipo numerico 
+
+
+            1. CAST 
+
+                --> padrao de escrita da funcao: 
+                    - CAST(Valor[Nome_da_Coluna] AS [Tipo_de_Dado])
+
+                --------------------------------------------------------------------------
+
+                -> CAST e uma funcao que converte um tipo de dado em outro, e e uma funcao padrao do SQL, e e uma funcao que e mais padronizada
+
+                SELECT (SELECT CAST('35' AS INT)) + (SELECT CAST('17' AS INT)) AS RESULTADO
+                    --> Isso que esta acontecendo e que esta passando o texto para um tipo numerico do tipo INTEIRO, e ai sim ele ira fazer a adicao dos valores, e ira gerar o resultado 52;
+
+
+                SELECT CAST('20210101' AS DATE) AS DATA
+                    --> Isso ira passar o resultado para o tipo Data, e ira gerar o resultado 2021-01-01;
+
+
+
+            2. CONVERT
+
+                --> padrao de escrita da funcao: 
+                    - CONVERT([Tipo_de_Dado], Nome_da_Coluna[], style(opcional))  
+
+
+                    temos uma funcao no sql chamada de GETDADE() que retorna a data atual do sistema: 
+
+                    SELECT GETDATE()
+                        --> usando o padrao brasileira isso nao seria a melhor coisa para gente, teriamos que converter para o nosso padrao, e para isso poderiamos usar o CONVERT
+
+                    SELECT CONVERT(varchar, GETDATE(), 103)
+                        --> o que esta acontecendo aqui e que ele esta convertendo a data para o tipo varchar, e o 103 e o estilo que ele esta convertendo, e o estilo 103 e o padrao brasileiro, entao ele ira converter a data para o padrao brasileiro, e ira gerar o resultado 01/01/2021, temos inumeros padroes a serem vistos;
+
+                        -> no tipo explicativo o que esta acontecendo ai e selecione e conveta para mim para tipo de texto, qual segundo parametro? a minha data que queremos receber e o style que sera o padrao que queremos receber;
+
+
+                    
+                
+                
+            3. TRY CAST / TRY CONVERT 
+
+
+                -> Utilizando apenas o convert e o cast, teremos um problema caso tenhamos um problema o fluxo inteiro sera intenrrompido, para isso podemos utilizar do try convert igualmente temos o try cast, ou seja, ele tenta fazer a conversao caso nao consiga ele ira continuar o fluxo.
+
+
+                exemplo: 
+
+                SELECT TRY_CONVERT(DATE, '14/02/2017', 101) AS COLUNA1, 
+                SELECT TRY_CONVERT(DATE,'02/14/2017', 101) AS COLUNA2
+
+                    --> ele ira dar o resultado para primeira coluna como Null e a segunda ele ira apresentar na tela, porque ao converter as datas ficaram assim: 
+
+                    /*
+                        COLUNA1 = 2017-14-02 -> Isso e uma data invalida 
+                        COLUNA2 = 2017-02-14 -> Isso e uma data valida
+                    */
+
+
+
+
+
+
+
+
+18. // CONVERSOES(PARSE, TRY_PARSE) //
+
+        1. Padrao de escrita da funcao:
+            - Parse(Nome_da_coluna AS [Tipo_de_Dado] [Using Culture])
+
+            -> Parse e uma funcao que converte uma string em um tipo de dado especifico, e e uma funcao padrao do SQL, e e uma funcao que e mais padronizada. 
+
+            SELECT PARSE('2654' AS INT)
+                --> aqui ele esta passando(parse) o numero para o tipo de dado string
+
+            
+
+            -> temos tambem a opcao do try_parse, que ele nao ira interromper o fluxo, ele ira tentar vazer a conversao, caso nao consiga ele ira continuar o fluxo, e ele ira retornar um valor nulo.
+
+
+            SELECT TRY_PARSE('1015F' AS INT)    
+                --> Ele ira tentar passar esse numero para inteiro, mas como ele contem uma letra nao ira conseguir, entao ira retornar null;
+
+
+        - O que seria o Using Culture
+            -> digamos que queremos selecionar um padrao cultural de um pais de como ele ira ser exibido
+
+            exemplo: 
+                SELECT PARSE('R$360,00' AS MONEY USING 'pt-br')
+                    --> ira retornar o valor 360,00, ou seja, ele ira converter o valor para o padrao brasileiro, e ira retornar o valor 360,00;
+
+                SELECT PARSE('2010/10/01' AS DATE USING 'pt-br')
+                    --> ira retornar a data 01/10/2010, ou seja, ele ira converter a data para o padrao brasileiro, e ira retornar a data 01/10/2010;
+
+
+
+        -> o try_parse e o parse por propria recomendacao do sql server, nao e recomendado a utilizacao de ambos, e recomendado se utilizar o convert e o cast, como o exemplo abaxio;
+
+
+        SELECT BusinessEntityID,
+               Title,
+               FirstName,
+               MiddleName,
+               LastName,
+               ModifiedDate,
+
+               TRY_CAST(ModifiedDate AS DATE) AS [Data Modificada],
+               TRY_CONVERT(varchar, ModifiedDate, 103) AS [Data Modificada 2.0]
+
+        FROM Person.Person
+
+
+
+
+
+
+
+
+
+19. // FUNCOES DE DATA E HORA DO SISTEMA // 
+
+    -> GETDATE(): retorna a data e hora atual do sistema;
+
+    -> SYSDATETIME(): similar ao getdate(), mas com maior precisao nos segundos;
+
+    -> GETUTCDATE(): retorna a data e hora atual do sistema no formato UTC;
+
+    -> SYSUTCDATETIME(): similar ao getutcdate(), mas com maior precisao nos segundos;
+
+    -> SYSDATETIMEOFFSET(): retorna a data e hora atual do sistema com o fuso horario;
+
+    -> CURRENT_TIMEZONE(): retorna o fuso horario atual do sistema;
+
+
+
+
+
+
+
+
+20. // FUNCOES DE DATA E HORA (DATEPART, DATENAME, ISDATE) // 
+
+    # DATEPART: retorna uma parte especifica de uma data, como o dia, mes, ano, hora, minuto, segundo, etc;
+
+        Padrao de escrita da funcao: 
+            - DATEPART(Parte_da_data, Data) --> retorna um inteiro
+
+        -> poderemos utilizar ele juntamente com as funcoes acima (19.), exemplo:
+
+        SELECT GETDATE() AS [GETDATE], 
+               DATEPART(HOUR, GETDATE()) AS HORA
+
+               --> O que esta acontecendo ai e que em uma colunas estamos mostrando a data e hora completa, e na outra coluna estamos pegando uma parte(part) da data(date), que no caso e a hora(hour), e ira retornar somente a hora atual do sistema;
+
+            -> porderiamos fazer isso tambem para: year (ano), month (mes), day (dia), minute (minuto), second (segundo), etc;
+
+
+
+        * O sql server da uma possibilidade de fazer uma abreviacao, ou seja, ao inves de colocar o nome completo do mes, poderiamos colocar a abreviacao do mes, e para isso poderiamos utilizar a funcao DATENAME, exemplo:
+
+        exemplo: 
+
+            SELECT 
+                YEAR(GETDATE() AS [ANO SOZINHO])
+                MONTH(GETDATE() AS [MES SOZINHO])
+                DAY(GETDATE() AS [DIA SOZINHO])
+
+        -> se quisessemos trazer algo mais preciso, trazer o microsecond poderiamos usar o systemdatetime, exemplo: 
+
+            SELECT 
+                DATEPART(MICROSECOND, SYSDATETIME()) AS MICROSEGUNDO
+                DATEPART(MILLISECOND, SYSDATETIME()) AS MILISEGUNDO
+                DATEPART(NANOSECOND, SYSDATETIME()) AS NANOSEGUNDO
+                 
+
+
+    # DATENAME: Temos outra funcao que trata para nos os nomes por extenso dos meses, dias, etc, que e a funcao DATENAME(), exemplo: 
+
+    /*podemos setar a linguagem tambem: 
+        SET LANGUAGE ENGLISH 
+        - ele ira retornar os nomes dos mesese em ingles ou de outra conteudo
+    */
+
+            Padrao de escrita da funcao: 
+                - DATENAME(Parte_da_data, Data) --> retorna uma cadeia de caracteres
+
+            SELECT 
+                DATENAME(DAY, GETDATE()),
+                DATENAME(MONTH, GETDATE())
+
+
+
+        -> exemplo na utilizacao de uma consulta do dia dia, lembrando que nao e muito recomendando utilizar funcoes dentro da clausula WHERE porque se perde muita performace;
+        
+             SELECT BusinessEntityID, 
+                    Title, 
+                    FirstName, 
+                    MiddleName, 
+                    LastName, 
+                    TRY_CAST(ModifiedDate AS DATE) AS [Data Modificada],
+                    DATEPART(YEAR, ModifiedDate) AS ANO,
+             FROM Person.Person
+                WHERE DATEPART(YEAR, ModifiedDate) = 2010 AND
+                    DATENAME(MONTH, ModifiedDate) = 'Dezembro'
+
+
+
+
+    # ISDATE: Ele vai avaliar se essa coluna ou campo e do tipo data, se ele for ele ira retornar true(1) ou false(0)
+
+        Padrao de escrita da funcao: 
+                - ISDATE(Nome_da_Coluna --> retorna true(1) | false(0)
+
+
+        - exemplo: 
+
+            SELECT BusinessEntityID, 
+                    Title, 
+                    FirstName, 
+                    MiddleName, 
+                    LastName, 
+                    TRY_CAST(ModifiedDate AS DATE) AS [Data Modificada],
+                    DATEPART(YEAR, ModifiedDate) AS ANO,
+
+                    ISDATE(ModifiedDate) AS [E DATA?]
+                    ISDATE(TRY_CONVERT(varchar, ModifiedDate, 103)) AS [E DATA?] 
+
+             FROM Person.Person
+                WHERE DATEPART(YEAR, ModifiedDate) = 2010 AND
+                    DATENAME(MONTH, ModifiedDate) = 'Dezembro'
+
+
+
+
+
+
+
+
+21. // FUNCOES DE DATA E HORA (EOMONTH, DATEFROMPARTS, TIMEFROMPARTES, DATETIMEFROMPARTS) // 
+
+    -> EOMONTH: Retorna o ultimo dia do valor que voce passar nele, pode ser um funcao a ser passada ou uma coluna, exemplo: 
+
+        SELECT 
+            EOMONTH(GETDATE()) AS ULTIMO_DIA_DO_MES,
+                --> ele ira retornar o ultimo dia do mes atual, ou seja, o dia 31;
+
+            EOMONTH('2021-02-01') AS ULTIMO_DIA_DO_MES_2
+                --> ele ira retornar o ultimo dia do mes
+
+            EOMONTH('2021-02-01', 3) AS MES 
+                -->  segundo paramentro(3) e opcional, se quiserssemos colocar 3 ele ira adicionar 3 meses a mais;
+
+            EOMONTH('2021-02-01', -3) AS MES
+                --> Ele ira fazer o mesmo do de cima so que ao contrario 
+
+
+    -> DATEFROMPARTS: Ele ira criar uma data a partir de partes, ou seja, voce passa o ano, mes e dia e ele ira retornar a data, exemplo:
+
+        --> sintaxe: 
+            /*
+                DATEFROMPARTS(ano, mes, dia) [TODOS DO TIPO INTEIRO] : RETORNO SERA UM DATE
+            */
+
+        SELECT DATEFROMPARTS(2015, 12, 25) AS DATA
+            --> ele ira retornar a data 2015-12-25
+
+    
+
+    -> TIMEFROMPARTS: Ele ira criar uma hora a partir de partes, ou seja, voce passa a hora, minuto, segundo e milisegundo e ele ira retornar a hora, exemplo:
+
+        --> sintaxe: 
+            /*
+                TIMEFROMPARTS(hora, minuto, segundo, milisegundo) [TODOS DO TIPO INTEIRO] : RETORNO SERA UM TIME
+            */
+
+
+        SELECT TIMEFROMPARTS(12, 30, 40 ,0  ) AS HORA 
+            --> ele ira retornar a hora 12:30:40
+
+
+
+    -> DATETIMEFROMPARTS: Ele ira criar uma data e hora a partir de partes, ou seja, voce passa o ano, mes, dia, hora, minuto, segundo e milisegundo e ele ira retornar a data e hora, exemplo:
+
+
+        --> sintaxe: 
+            /*
+                DATETIMEFROMPARTS(ano, mes, dia, hora, minuto, segundo, milisegundo) [TODOS DO TIPO INTEIRO] : RETORNO SERA UM DATETIME
+            */
+
+        SELECT DATETIMEFROMPARTS(2015, 12, 25, 12, 30, 40, 0) AS DATA_HORA
+            --> ele ira retornar a data e hora 2015-12-25 12:30:40   
+
+
+
+
+
+
+
+
+22. // FUNCOES DE DATA E HORA (DATEDIFF, DATEDIFF_BIG, DATEADD)  // 
+
+    -> DATEDIFF: Retorna a diferenca entre duas datas, ou seja, voce passa duas datas e ele ira retornar a diferenca entre elas, exemplo:
+
+        --> sintaxe: 
+            /*
+                DATEDIFF(Parte_da_data, Data1, Data2) : RETORNO SERA UM INTEIRO
+            */
+
+        SELECT DATEDIFF(DAY, '2005-08-15', GETDATE()) AS DIAS
+            --> ele ira retornar a diferenca de dias entre a data passada e a data  atual;
+
+
+
+    -> DATEDIFF_BIG: Similiar ao DATEDIFF(), a diferenca que esse tem uma precisao maior, porque assim ele consegue retornar nanosecond;
+
+        --> sintaxe: 
+            /*
+                DATEDIFF_BIG(Parte_da_data, Data1, Data2) : RETORNO SERA UM BIG   INT            
+            */
+
+        SELECT DATEDIFF_BIG(NANOSECOND, '2005-08-15', GETDATE()) AS DIAS
+            --> ele ira retornar a diferenca de dias entre a data passada e a data atual;
+
+
+
+    -> DATEADD(): Adiciona uma quantidade de tempo a uma data, ou seja, voce passa uma data e uma quantidade de tempo e ele ira retornar a data, exemplo:
+
+        --> sintaxe: 
+            /*
+                DATEADD(Parte_da_data, Quantidade, Data) : RETORNO SERA UM DATE
+            */
+
+        SELECT DATEADD(DAY, 10, GETDATE()) AS DATA
+            --> ele ira retornar a data atual mais 10 dias;
+
+        SELECT DATEADD(MONTH, 2, GETDATE()) AS DATE
+            --> ele ira retornar a data atual mais 2 meses;
+
+        SELECT DATENAME(MONTH, DATEADD(MONTH, 2, GETDATE())) AS MES
+            --> ele ira retornar o nome do mes atual mais 2 meses; 
+
+
+
+
+
+
+
+
+23. // CONCATENACAO (CONCAT E CONCAT_WS) // 
+
+    - vamos para um exemplo, que se tentarmos executar isso abaixo teriamos um erro, porque ele ira tentar somar os valores, e nao ira concatenar:  
+
+        -- SELECT 'Kayque' + 'Allan' + 12345
+
+        CONCAT(): temos uma funcao que sera bastante util chamada concat, e o bom dela e que ela recebe inumeros argumentos, e ela ira concatenar todos eles, exemplo:
+
+            SELECT CONCAT('Kayque', 'Allan', 12345)
+                --> ele ira retornar o valor 'KayqueAllan12345'
+
+
+        CONCAT_WS(): temos a funcao tambem de concatenacao passando como o primeiro argumento o separador, e os demais argumentos serao concatenados, exemplo:
+
+            SELECT CONCAT_WS(' ', 'Kayque', 'Allan', 12345, 'Ribeiro')
+                --> ele ira retornar o valor 'Kayque Allan 12345 Ribeiro'
+
+
+
+
+
+
+
+
+
+24. // TRATANDO NULL (ISNULL, COALESCE) // 
+
+    -> Quando mostrarmos isso a pessoas superiores seria mutio feio mostrar dessa forma, porque apareceria um tanto de null na tela, poderiamos utilizar a funcao: 
+
+    ISNULL(): Essa funcao ira substituir os valores nulos por um valor padrao, exemplo: 
+
+        /* 
+            ISNULL(Nome_da_Coluna, Valor_Padrao) : RETORNO SERA O VALOR PADRAO
+        */
+        
+        SELECT BusinessEntityID, 
+                PersonType, 
+                NameStyle,
+                ISNULL(Title, ' ') AS Title,
+                FirstName,
+                MiddleName,
+                LastName,
+                AdditionalContactInfo,
+                TRY_CONVERT(varchar, ModifiedDate, 103) AS [Data Modificada],
+        FROM Person.Person
+            WHERE Suffix IS NOT NULL 
+
+        
+
+    COALESCE(): Essa funcao recebe varias colunas/ valores ou paramentros, e vai fazer algumas verificacoes, o primeiro e nulo o segundo e nulo o terceiro e nulo... ele ira ficar pulando os valores que sao nulos ate achar alguem que nao seja null, ja sabemos que title tem coisas do tipo null, entao olha o que podemos fazer: 
+
+        SELECT * ,
+                COALESCE(Tile, MiddleName, Suffix, FirstName) AS [COALESCE]
+        FROM Person.Person
+
+            -> Vejam ele ira passando por cada argumento, e ira retornar o que nao seja nulo, para que serve isso? pode lhe ser util caso queiramos trazer varias colunas e saber quem nao e nulo, e depender do que seja podemos tomar uma decisao;   
+
+
+
+
+
+
+
+
+25. // ORDEM DE PROCESSAMENTO LOGICO DA QUERY // 
+
+    -> SELECT SalesOrderID,
+              SalesOrderDetailID,
+              CarrierTrackingNumber,
+              MAX(OrderQty) AS COL,
+              ProductID,
+              UnitPrice,
+              LineTotal,
+              TRY_CAST(ModifiedDate AS DATE) AS [DataModificada]
+
+        FROM Sales.SalesOrderDetail
+        WHERE DataModicada = 2011-05-31
+
+        -> Se tentarmos executar isso, ira dar um erro, porque no sql server temos uma coisa chamada de ordem de processamento logico da query, e a ordem que a query sera executada, a maneira que nos seres humanos lemos a query, nao e maneira como o sql ira executala, e a ordem de processamento logico e a seguinte:
+
+            1. FROM
+            2. WHERE
+            3. GROUP BY
+            4. HAVING
+            5. SELECT 
+            6. ORDER BY
+            7. OFFSET FETCH | TOP
+
+
+
+        -> Porque ele nao da erro de sintaxe "MAX(OrderQty) AS COL", mas quando executarmos ele ira dar erro de compilacao, porque ele ira executar primeiro o "FROM" depois o "WHERE" , quando chegar no "SELECT" por nao termos o GROUP BY, ele vai estar "crente", que teremos um grop by abaixo que ira tratar esse agrupamento de linhas, so que isso nao ira acontecer, quando executarmos isso ira dar um erro pois nao tratamos no group by;
+
+
+        exemplos: 
+
+            SELECT SalesOrderID [Primeira Coluna],
+                CarrierTrackingNumber,
+                MAX(UnitPrice) AS TOTAL,
+                TRY_CAST(ModifiedDate AS DATE) AS [DataModificada]
+
+                FROM Sales.SalesOrderDetail
+            WHERE DataModicada = 2011-05-31   
+            GROUP BY SalesOrderID, 
+                     CarrierTrackingNumber,
+                     ModifiedDate   
+            HAVING MAX(UnitPrice) > 750.000
+            ORDER BY [Primeira Coluna] ASC
+
+                -> Primero ele esta pegando da tabela SalesOrderDetail, depois ele esta fazendo um filtro, depois ele esta agrupando, depois ele esta fazendo um filtro, e depois ele esta ordenando, e isso e a ordem de processamento logico da query, o interessante que podemos fazer e que podemos colocar ao inves do nome principal da coluna, podemos utilzar o apelido em ORDER BY, porque ele entende, mas por qual motivo? porque ele e executado depois do select 
+
+
+
+
+
+
+
+
+26. // OPERADORES UNION E UNION ALL // 
+
+    -> exemplo abaixo: 
+
+        SELECT 
+            'DevDojo' AS [NOME]
+            'Java' AS [LINGUAGEM]
+
+        SELECT 
+            'GOOGLE' AS [EMPRESA]
+            'KOTLIN' AS [LINGUAGEM]
+
+            
+            -> Vimos antes que o join relaciona tabelas, relacionamos colunas com outras colunas de outras tabelas, ao inves de fazer essa juncao quisermos fazer uma UNION, ao inves de nos fazermos duas consultas tivessemos apenas uma, pensando nisso temos o comand UNION: 
+
+        # UNION: Ele ira juntar os resultados de duas consultas, e ira retornar um unico resultado, mas ele ira remover os valores duplicados, ou seja, ele ira retornar apenas um valor, exemplo:
+
+            SELECT 
+                'DevDojo' AS [NOME]
+                'Java' AS [LINGUAGEM]
+
+            UNION
+
+            SELECT 
+                'GOOGLE' AS [EMPRESA]
+                'KOTLIN' AS [LINGUAGEM]
+
+                -> ele ira retornar o resultado: 
+
+                    /*
+                        NOME    | LINGUAGEM
+                        DevDojo | Java
+                        GOOGLE  | KOTLIN
+                    */
+
+            exemplo: 
+
+                SELECT PersonType [COLUNA 4],
+                       FirstName [COLUNA 5],
+                       MiddleName [COLUNA 6]
+                FROM Person.Person
+                WHERE MiddleName IS NOT NULL AND FirstName = 'Aaron'
+            1 - ORDER BY FirstName
+
+                    UNION
+
+                SELECT PersonType AS [COLUNA 1]
+                       FirstName AS [COLUNA 2],
+                       MiddleName AS [COLUNA 3]
+                FROM Person.Person 
+                WHERE MiddleName IS NOT NULL AND FirstName = 'Abigail'
+                ORDER BY FirstName
+
+                    -> Se tentarmos executar isso ele ira dar erro, mas se comentarmos o primeiro order by o problema acaba, mas porque o problema acaba? porque o order by vem apos o select 
+
+                
+
+                    ... continuando o exemplo:
+
+
+                SELECT PersonType [COLUNA 4],
+                       FirstName [COLUNA 5],
+                       MiddleName [COLUNA 6]
+                FROM Person.Person
+                WHERE MiddleName IS NOT NULL AND FirstName = 'Aaron'
+
+                    UNION
+
+                SELECT PersonType AS [COLUNA 1]
+                       FirstName AS [COLUNA 2],
+                       MiddleName AS [COLUNA 3]
+                FROM Person.Person 
+                WHERE MiddleName IS NOT NULL AND FirstName = 'Abigail'
+
+                ORDER BY --[COLUNA 4] / [COLUNA 5] / [COLUNA 6]
+
+
+                    -> Se retiramos e o primeiro order by e deixar somente o segundo, o auto complit dele aparece somente as colunas 4,5,6 como descrito acima, ou seja, ao termino do union esse order by, ele vai trazer a ordenacao do primeiro bloco, ou seja, do primeiro select, coluna 1,2 ,3 foram concatenadas  entao regras de ordenacao serao para o primeiro bloco 
+
+
+        # UNION ALL : Ele ira juntar os resultados de duas consultas, e ira retornar um unico resultado, mas ele ira retornar os valores duplicados, ou seja, ele ira retornar todos os valores, exemplo:
+
+            SELECT 
+                'DevDojo' AS [NOME]
+                'Java' AS [LINGUAGEM]
+
+            UNION ALL
+
+            SELECT 
+                'DevDojo' AS [EMPRESA]
+                'Java' AS [LINGUAGEM]
+
+                -> ele ira retornar o resultado: 
+
+                    /*
+                        NOME    | LINGUAGEM
+                        DevDojo | Java
+                        DevDojo | Java
+                    */
+
+
+
+
+
+
+
+
+27. // OPERADORES EXCEPT E INTERSECT // 
+
+    -> EXCEPT: Retornara os valores da primeira tabela / consulta que nao estarao na segunda consulta / tabela 
+
+        SELECT 
+                'DevDojo' AS [NOME]
+                'Java' AS [LINGUAGEM]
+
+            EXCEPT
+
+        SELECT 
+            'GOOGLE' AS [EMPRESA]
+            'KOTLIN' AS [LINGUAGEM]
+
+                -> ele ira retornar o resultado, porque vejamos que o nome devdojo e java nao existem na consulta debaixo, entao ele esta trazendo o que tem na primeira e nao tem na segunda :
+
+                    /*
+                        NOME    | LINGUAGEM
+                        DevDojo | Java
+                    */
+
+
+
+
+        -> INTERSECT: Retornara a intersecao dos valores / o que for de comum: 
+
+            SELECT BusinessEntityID AS [COL2],
+                FROM Person.Person -- 19.972 rows
+
+              INTERSECT 
+
+            SELECT BusinessEntityID AS [COL1]
+                FROM HumanResources.Employee -- 290 rows 
+
+
+
+        !! lembrando que temos que ter a mesma quantidade de colunas quando for fazer a selecao, caso contrario teremos um erro de compilacao;
+
+
+
+
+
+
+
+
+
+28. // FUNCOES DO TIPO TEXTO (SUBSTRING) // 
+
+    # SUBSTRING(): Retorna uma parte de uma string, ou seja, voce passa a string, o inicio e o tamanho, e ele ira retornar a parte da string, exemplo:
+
+        /* 
+            SUBSTRING(Nome_da_Coluna, Inicio, Tamanho) : 
+                retorna sempre sera texto, nchar, char, varchar, nvarchar, ntext, text 
+        */
+
+        SELECT 'O melhor canal do youtube e o DevDojo, Brabo demais!' AS COLUNA
+
+        -> se quisessemos pegar apenas um pedaco do texto, como poderiamos resolver isso? poderiamos utilizar a funcao substring, exemplo:
+
+            SUBSTRING('O melhor canal do youtube e o DevDojo, Brabo demais!', 3 , 5) AS SUBSTRING
+
+            --> ele ira retornar o valor "melho", ou seja, ele ira pegar a partir do terceiro caractere e ira pegar 5 caracteres a frente, e ira retornar o valor "melho";
+
+
+        ... outros exemplos: 
+
+            SELECT BusinessEntityID,
+                   SUBSTRING(BusinessEntityID, 1, 2) as [SUBSTRING INT]
+                   PersonType,
+                   Title,
+                   FirstName,
+                   MiddleName,
+                   LastName,
+                   ModifiedDate,
+            FROM Person.Person
+
+                -> Se tentarmos fazer isso e executar ja iremos dar um erro de compilacao porque coluna do tipo inteiro nao podemos passar no substring, ele e uma funcao para tratar texto;
+
+
+            
+            * Como seria a tratativa caso passariamos uma data dentro do susbstring? 
+
+                SELECT 
+                    SUBSTRING(ModifiedDate, 1, 4) AS [ANO]
+                    
+                    -> Teriamos um problema, o susbtring trata somente valores do tipo texto, entao nao podemos passar valores que nao sejam do tipo texto para ele;
+
+
+
+
+
+
+
+
+29. // FUNCOES DO TIPO TEXTO (CHARINDEX, PATINDEX) // 
+
+    # CHARINDEX(): Retorna a posicao de uma expressao em uma string, ou seja, voce passa a expressao e a string, e ele ira retornar a posicao da expressao, e uma expressao do tipo texto que ira retornar um inteiro, exemplo:
+
+        /*
+            CHARINDEX('expressaoAprocurar', Nome_da_Coluna)
+        */
+
+        SELECT BusinessEntityID,
+               EmailAddress,
+               CHARINDEX('@', EmailAddress) AS [POSICAO ARROBA]
+               ModifiedDate
+        FROM Person.EmailAddress
+
+            --> Ira retornar o numero da posicao da arroba na string, ou seja, ele;
+
+
+        -> vamos para outro exemplo bem especifico, onde temos a coluna EmailAddress, ondem contem os enderecos de email, e no caso precisaremos de apenas o nome da pessoa ou sua indentificacao que ira ficar antes do '@', nesse caso poderiamos utilizar o substring  e tamebm o charindex: 
+
+            SELECT BusinessEntityID,
+                EmailAddress,
+                SUBSTRING(EmailAddress, 1, CHARINDEX('@', EmailAddress) -1) [PESSOA NAME]
+            FROM Person.EmailAddress
+
+                --> Vamos entender o que ele esta fazendo aqui antes de executar, o charindex ira retornar algo do tipo inteiro, o terceiro argumento do tipo substring() e algo do tipo inteiro, sera o tamanho / comprimento que queremos retornar, entao estamos pegando a posicao do '@', e dentro de charindex ele esta retornando um numero inteiro que onde esta o '@', e estamos passando isso para o substring, e ele ira retornar o nome da pessoa antes do '@';   
+
+
+
+    # PATINDEX(): Retorna a posicao de uma expressao em uma string, ou seja, voce passa a expressao e a string, e ele ira retornar a posicao da expressao, e uma expressao do tipo texto que ira retornar um inteiro, exemplo:
+
+        /*
+            PATINDEX('%padrao%', Nome_da_Coluna)
+        */             
+
+
+        SELECT CHARINDEX('Y', 'O melhor canal do youtube e o DevDojo, brabo demais')
+               PATINDEX('%e_o__e%', 'O melhor canal do youtube e o DevDojo, brabo demais')
+
+               --> Eles sao bastante iguais, e parecido com o LIKE, onde podemos passar um padrao, e ele ira retornar a posicao do padrao;
+
+
+
+
+    
+    
+    
+    
+  
+
+            
+
+            
 
 
 
 
  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+             
+
+       
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1813,3 +3493,5 @@
                         DROP PROFILE <perfil> [CASCADE];
 
                             obs: o perfil e retirado de todos os usuarios aos quais o perfil havia sido definido e o profile default e definido para tais usuario.
+
+
