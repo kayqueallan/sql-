@@ -1675,11 +1675,623 @@
 
 
 
+
+
+
+
+30. // FUNCOES DO TIPO TEXTO (LEN, DATALENGTH, LEFT & RIGHT) // 
+
+    # LEN(): Retorna o tamanho da minha coluna de algo que estou passando para ele
+
+        /*
+            LEN(Nome_da_Coluna) : RETORNO SERA UM INTEIRO
+        */
+
+        SELECT LEN(' DevDojo   ') AS [TAMANHO]
+            --> ele ira retornar o valor 8, ou seja, ele ira retornar o tamanho da string que estamos passando para ele, OBS: os espacoes a direita ele nao ira contar, mas os espacos a minha esquerda ele conta;
+
+
+    # DATALENGTH(): Retorna o tamanho da minha coluna de algo que estou passando para ele,  a quantidade de bytes | tipo int 
+
+        /*
+            DATALENGTH(Nome_da_Coluna) : RETORNO SERA UM INTEIRO
+        */
+
+        SELECT DATALENGTH(' DevDojo   ') AS [TAMANHO]
+            --> ele ira retornar o valor 11, ou seja, ele ira retornar o tamanho da string que estamos passando para ele, OBS: ele ira contar os espacos a direita e a esquerda;
+
+
+
+    # LEFT(): Retorna uma parte da string a partir do inicio, ou seja, voce passa a string e o tamanho, e ele ira retornar a parte da string, exemplo:
+
+        /*
+            LEFT(Nome_da_Coluna, Tamanho) : RETORNO SERA UM TEXTO
+        */
+
+        SELECT LEFT('O melhor canal do Youtube e o DevDojo, brabo demais!', 5) AS [LEFT]
+            --> ele ira retornar o valor "O mel", ou seja, ele ira pegar os 5 primeiros caracteres da string;
+
+
+    # RIGHT(): Retorna uma parte da string a partir do final, ou seja, voce passa a string e o tamanho, e ele ira retornar a parte da string, exemplo:
+
+        /*
+            RIGHT(Nome_da_Coluna, Tamanho) : RETORNO SERA UM TEXTO
+        */
+
+        SELECT RIGHT('O melhor canal do Youtube e o DevDojo, brabo demais!', 5) AS [RIGHT]
+            --> ele ira retornar o valor "mais!", ou seja, ele ira pegar os 5 ultimos caracteres da string;
+
+
+
+
+
+
+
+
+
+31. // FUNCOES DO TIPO TEXTO (REPLACE, REPLICATE, STUFF) // 
+
+    # REPLACE(): Substitui uma expressao por outra em uma string, ou seja, voce passa a string, a expressao que deseja substituir e a expressao que ira substituir, exemplo:
+
+        /*
+            REPLACE(Nome_da_Coluna / Expressao, 'textoParaProcurar', 'textoQueSubstituira')
+        */
+
+        SELECT 'DevDojo brabo demais!' AS [devdojo]
+            REPLACE('DevDojo brabo demais!', 'brabo', 'bolado') AS [REPLACE]
+
+                --> ele ira retornar o valor "DevDojo bolado demais!", ou seja, ele ira substituir a palavra "brabo" por "bolado";
+
+
+    # REPLICATE(): Repete uma string um numero especifico de vezes, ou seja, voce passa a string e o numero de vezes que deseja repetir:
+
+        /*
+            REPLICATE(Expressao_a_repllicar, Numero de vezes) : RETORNO SERA UM TEXTO
+        */
+
+        SELECT REPLICATE('0', 10) AS [REPLICATE]
+            --> ele ira retornar o valor "0000000000", ou seja, ele ira repetir o "0" 10 vezes;
     
+
+    # STUFF(): Substitui uma parte de uma string por outra, ou seja, voce passa a string, a posicao de inicio, o tamanho e a expressao que ira substituir:
+
+        /*
+            STUFF(Expressao / Nome_da_Coluna, posicaoIncio, tamanho, 'substituicao)
+        */
+
+        SELECT STUFF('DevDojo brabo demais!', 9, 5, 'bolado') AS [STUFF]
+            --> ele ira retornar o valor "DevDojo bolado demais!", ou seja, ele ira substituir a partir do 9 caractere, 5 caracteres pela palavra "bolado";
     
+
+
+
+    exemplo utilizando AdventureWorks:
+
+        -> Vamos supor que precisamos substituir o'@' por qualquer outra expressao, suponhamos tambem que antes de cada numero da coluna BusinessEntityID colocar a quantidade de zeros respectivos;
+
+        SELECT BusinessEntityID, 
+               CONCAT( REPLICATE('0', LEN( (SELECT MAX(BusinessEntityID) FROM Person.Person) ) - LEN(BusinessEntityID) ),
+               PersonType,
+               Title,
+               FirstName,
+               MiddleName,
+               LastName,
+
+               REPLACE(EmailAddress, '@', '\|/') AS [REPLACE]
+
+
+        FROM Person.Person AS PP 
+        JOIN Person.EmailAddress AS PEA ON PP.BusinessEntityID = PEA.BusinessEntityID
+
+
+
+     PT2 UTILIZANDO ESSAS FUNCOES: 
+
+        -> Vamos supor que nossa coluna de name temos alguns nomes que contem o Nome/espaco/traco, quanto a outros tem numero traco e letra, e queremos substituir colando um espaco poderiamos utilizar o replace
+
+        SELECT SalesOrderDetailID,
+               CarrierTrackingNumber,
+               SSDD.ProductID,
+               ProductNumber,
+               REPLACE(PP.Name,'-', ' - ') AS [REPLACE1],
+                    --> alguns ja contem esses espacos ao adicionar mais esse hifem, ele ira adicionar mais espaco ainda nos que contem
+               UnitPrice,
+               LineTotal,
+               SSDD.ModifiedDate,
+            FROM Sales.SalesOrderDetail AS SSDD LEFT JOIN Prodution.ProductID
+            ON SSDD.ProductID = PP.ProductID
+        ORDER BY SalesOrderDetailID
+
+
+        - nesse caso podemos solucionar da seguinte forma, utilizando o patindex e case when e then:
+
+
+    Atualizando...
+
+            SELECT SalesOrderDetailID,
+               CarrierTrackingNumber,
+               SSDD.ProductID,
+               ProductNumber,
+               --REPLACE(PP.Name,'-', ' - ') AS [REPLACE1],
+
+            CASE 
+                WHEN PATINDEX('%[0-9A-z]-[0-9A-z]%', PP.Name) > 0
+                THEN STUFF(PP.Name, (PATINDEX('%[0-9A-z]-[0-9A-z]%', 1, PP.Name) + 1), 1, ' - '),
+                    ELSE PP.Name
+            END AS [STUFF_2],
+
+                --> explicacao: podemos pegar a linha 32 para visualizar melhor, o que nos fizemos? aqui na minha posicao(patindex) o que ele esta retornarndo? a ocorrencia que passamos para ele? me traz o  que tiver o traco no meio qualquer numero ou letra que estiver na minha esquerda e qualquer numero ou letra que estiver na minha direita deste caracter no meio, entao case -> quando essa posicao 'PATINDEX...' for maior que zero me faca isso aqui -> STUFF, O stuff seria, a coluna - posicaoInicial - tamanhoQueIraPegar - OqueEleIraSubstituir, a posicao que ele esta retornando e de um caracter antes do meu traco, so que queremos manipular especificamente o traco, entao adicionamos +1, porque a posicao inicial sera o espaco em branco ou a letra, nao queremos isso queremos que seja +1 e pegue o hifen, e logo apos vem o caracter que queremos pegar dali para frente que no caso seria 1, porque queremos pegar apenas o hifen e depois vem pelo o que queremos substituir;
+
+
+              ...
+
+
+
+
+
+
+
+
+32. // FUNCOES DO TIPO TEXTO (LTRIM, RTRIM, TRIM, UPPER, LOWER, SPACE, FORMAT) //
+
+    -> vamos supor que algum usuario que quando ele passa algum dado em algum sistema ele de um monte de espaco no inicio e um monte de espaco no final: 
+
+        SELECT '              DevDojo e o Melhor          ' AS DevDojo
+            --> temos algumas funcoes que podem ajudar a tratar isso 
+
+
+
+    # LTRIM(): Remove os espacos a esquerda de uma string, ou seja, voce passa a string e ele ira remover os espacos a esquerda, exemplo:
+
+        /*
+            LTRIM(Nome_da_Coluna) : RETORNO SERA UM TEXTO
+        */
+
+        SELECT LTRIM('              DevDojo e o Melhor          ') AS [LTRIM]
+            --> ele ira retornar o valor "DevDojo e o Melhor          ", ou seja, ele ira remover os espacos a esquerda;
     
+
+
+    # RTRIM(): Remove os espacos a direita de uma string, ou seja, voce passa a string e ele ira remover os espacos a direita, exemplo:
+
+        /*
+            RTRIM(Nome_da_Coluna) : RETORNO SERA UM TEXTO
+        */
+
+        SELECT RTRIM('              DevDojo e o Melhor          ') AS [RTRIM]
+            --> ele ira retornar o valor "              DevDojo e o Melhor", ou seja, ele ira remover os espacos a direita;
+
+
+
+    # TRIM(): Remove os espacos a esquerda e a direita de uma string, ou seja, voce passa a string e ele ira remover os espacos a esquerda e a direita, exemplo:
+
+        /*
+            TRIM(Nome_da_Coluna) : RETORNO SERA UM TEXTO
+        */
+
+        SELECT TRIM('              DevDojo e o Melhor          ') AS [TRIM]
+            --> ele ira retornar o valor "DevDojo e o Melhor", ou seja, ele ira remover os espacos a esquerda e a direita;
+
+
+
+    # UPPER(): Converte uma string para maiuscula, ou seja, voce passa a string e ele ira converter para maiuscula, exemplo:
+
+        /*
+            UPPER(Nome_da_Coluna) : RETORNO SERA UM TEXTO
+        */
+
+        SELECT UPPER('DevDojo e o Melhor') AS [UPPER]
+            --> ele ira retornar o valor "DEVDOJO E O MELHOR", ou seja, ele ira converter para maiuscula;
     
-  
+
+
+
+    # LOWER(): Converte uma string para minuscula, ou seja, voce passa a string e ele ira converter para minuscula, exemplo:
+
+        /*
+            LOWER(Nome_da_Coluna) : RETORNO SERA UM TEXTO
+        */
+
+        SELECT LOWER('DevDojo e o Melhor') AS [LOWER]
+            --> ele ira retornar o valor "devdojo e o melhor", ou seja, ele ira converter para minuscula;  
+
+
+    # SPACE(): Retorna uma string com o numero especifico de espacos, ou seja, voce passa o numero de espacos e ele ira retornar a string com o numero de espacos, exemplo:
+
+        /*
+            SPACE(Numero_de_Espacos) : RETORNO SERA UM TEXTO
+        */
+
+        SELECT SPACE(10) AS [SPACE]
+            --> ele ira retornar o valor "          ", ou seja, ele ira retornar 10 espacos;
+
+
+    # FORMAT(): Formata um valor com o formato especifico, ou seja, voce passa o valor e o formato e ele ira retornar o valor formatado, exemplo:
+
+        /*
+            FORMAT(Nome_da_Coluna, Formato) : RETORNO SERA UM TEXTO
+        */
+
+        SELECT FORMAT(GETDATE(), 'dd/MM/yyyy') AS [FORMAT]
+            --> ele ira retornar o valor "dd/MM/yyyy", ou seja, ele ira retornar a data formatada;
+
+    
+
+        exemplo: 
+
+            SELECT PP.BusinessEntityID
+                   Title,
+                   UPPER(FirstName) AS [FirstName],
+                   LOWER(MiddleName) AS [MiddleName],
+                   lastName,
+                   UPPER(EmailAddress) AS [EmailAddress],
+                   FirstName + SPACE(10) + LastName AS [NOME_COMPLETO],
+                   CONCAT_WS(SPACE(2), FirstName, MiddleName, PP.ModifiedDate) AS  [CONCAT_WS]
+                   FORMAT(GETDATE(), 'dd/MM/yyyy', 'pt-BR') AS [FORMAT] 
+            FROM Person.Person AS PP JOIN Person.EmailAddress AS PEA 
+                ON PP.BusinessEntityID = PEA.BusinessEntityID
+
+
+
+
+
+
+
+
+
+33. // FUNCOES DO TIPO TEXTO (CHAR, NCHAR, UNICODE, ASCII, SOUNDEX, DIFFERENCE, REVERSE) // 
+
+    # CHAR(): Alem de tipo de dado ele tambem tem o nome de uma funcao, voce passara um numero e ele ira retornar um caracter de 1 bite correspondente ao codigo ASCII, e util caso queiramos fazer um tipo de operacao muito especifica, exemplo:
+
+        /*
+            CHAR(Codigo_ASCII) : RETORNO SERA UM TEXTO
+        */
+
+        SELECT CHAR(65) AS [CHAR]
+            --> ele ira retornar o valor "A", ou seja, ele ira retornar o caractere correspondente ao codigo ASCII;
+
+
+
+    # NCHAR(): Alem de tipo de dado ele tambem tem o nome de uma funcao, voce passara um numero e ele ira retornar um caracter de 2 bites correspondente ao codigo UNICODE, e util caso queiramos fazer um tipo de operacao muito especifica, exemplo:
+
+        /*
+            NCHAR(Codigo_UNICODE) : RETORNO SERA UM TEXTO
+        */
+
+        SELECT NCHAR(200) AS [NCHAR]
+            --> ele ira retornar o valor "È", ou seja, ele ira retornar o caractere correspondente ao codigo UNICODE;
+    
+
+
+    # ASCII(): Retorna o codigo ASCII do primeiro caractere de uma string, ou seja, voce passa a string e ele ira retornar o codigo ASCII do primeiro caractere, podemos passar tambem um numero e ele retornara um numero tambem, exemplo:
+
+        /*
+            ASCII(Nome_da_Coluna) : RETORNA O VALOR DA TABELA ASCII
+        */
+
+        SELECT ASCII('A') AS [ASCII]
+            --> ele ira retornar o valor 65, ou seja, ele ira retornar o codigo ASCII do caractere;
+
+
+
+    # UNICODE(): Temos que passar algo do tipo texto tambem, ele vai retornar um ponto de codigo UNICODE(TF16), ou seja, voce passa a string e ele ira retornar o ponto de codigo UNICODE, exemplo:
+
+        /*
+            UNICODE(Nome_da_Coluna) : RETORNA O VALOR DA TABELA UNICODE
+        */
+
+        SELECT UNICODE('A') AS [UNICODE]
+            --> ele ira retornar o valor 65, ou seja, ele ira retornar o ponto de codigo UNICODE do caractere;
+
+
+
+    # SOUNDEX(): Pode ser util na comparacao de algum caracter ou expressao, ele ira retornar um codigo de 4 caracteres que representa o som da string, ou seja, voce passa a string e ele ira retornar o codigo de 4 caracteres, exemplo:
+
+        /*
+            SOUNDEX(Nome_da_Coluna) : RETORNA UM CODIGO DE 4 CARACTERES
+        */
+
+        SELECT SOUNDEX('DevDojo') AS [SOUNDEX]
+            --> ele ira retornar o valor "D130", ou seja, ele ira retornar o codigo de 4 caracteres que representa o som da string;
+
+
+
+    # DIFFERENCE(): recebera dois argumentos, podemos passar dois argumentos como se fossem soundex, esta comparando a primeira expressao com a segunda expressao, ele retornara o valor de 0 a 4, onde zero significa pouca ou nenhuma semelhanca e o 4 indica forte semelhanca; 
+
+        /*
+            DIFFERENCE(Nome_da_Coluna1, Nome_da_Coluna2) : RETORNA UM INTEIRO
+        */
+
+        SELECT DIFFERENCE('Fabricio', 'Fabrycyo') AS [DIFFERENCE]
+            --> ele ira retornar o valor 4, ou seja, ele ira retornar o valor de 0 a 4, onde zero significa pouca ou nenhuma semelhanca e o 4 indica forte semelhanca;
+    
+
+
+
+    # REVERSE(): Inverte a ordem dos caracteres de uma string, ou seja, voce passa a string e ele ira inverte a ordem dos caracteres, exemplo:
+
+        /*
+            REVERSE(Nome_da_Coluna) : RETORNA UM TEXTO
+        */
+
+        SELECT REVERSE('DevDojo') AS [REVERSE]
+            --> ele ira retornar o valor "ojoveD", ou seja, ele ira inverter a ordem dos caracteres;
+
+
+
+
+
+
+
+
+
+34. // FUNCOES DO TIPO TEXTO (TRANSLATE, STR) // 
+
+    -> vamos supor que temos uma seguinte expressao onde queriamos trocar alguns caracteres, para isso poderiamos utilizar o replace, so que ele nao daria conta de fazer a troca varios caracteres em uma unica vez, para isso temos a funcao translate: 
+
+
+    # TRANSLATE(): Substitui varios caracteres em uma string, ou seja, voce passa a string, os caracteres que deseja substituir e os caracteres que ira substituir, exemplo:
+
+        /*
+            TRANSLATE(Expressao / Nome_da_Coluna, 'CaracteresParaSubstituir', 'CaracteresQueSubstituirao')
+        */
+
+
+        - exemplo:
+
+            SELECT TRANSLATE('A melhor seleção do mundo é o Brasil', 'çã é ?', 'ca e !') AS [TRANSLATE]
+                --> ele ira retornar o valor "A melhor selecao do mundo e o Brasil", ou seja, ele ira substituir os caracteres que estao na primeira string pelos caracteres que estao na segunda string;
+    
+
+
+    # STR(): Converte um valor numerico em uma string, ou seja, voce passa o valor numerico e ele ira converter para string, exemplo:
+
+
+        /*
+            STR(Valor_Numerico) : RETORNA UM TEXTO
+        */
+
+         - exemplo: 
+
+            SELECT BusinessEntityID,
+                   TRY_CAST(Rate AS varchar(10)) AS [RateChangeDate],
+                   STR(Rate, 8, 4)
+                       --> o primeiro argumento passamos a coluna, o segundo argumento e o tamanho total que queremos, e o terceiro argumento e a quantidade de casas decimais que queremos, ele ira retornar o valor "0.0000", ou seja, ele ira converter o valor numerico para string;
+                   PayFrequency
+            FROM HumanResources
+
+                --> Podemos fazer a conversao atraves do try_cast, mas o problema e que algumas vezes os zeros a direita pode ser omitido, utilizando o str se faz com que fique visualmente identica ao numero
+
+
+
+
+
+
+
+
+
+35. // FUNCOES DO TIPO TEXTO (STRING_AGG E STRING_SPLIT) // 
+
+    # STRING_AGG(): Concatena os valores de uma coluna em uma string, ou seja, voce passa a coluna e ele ira concatenar os valores em uma string, exemplo:
+
+        /*
+            STRING_AGG(Nome_da_Coluna, 'Separador') : RETORNA UM TEXTO
+        */
+
+        SELECT STRING_AGG(Title, ', ') AS [STRING_AGG]
+            --> ele ira retornar o valor "Mr., Mrs., Ms., Miss", ou seja, ele ira concatenar os valores da coluna separando por virgula;
+
+            exemplo: 
+
+            SELECT STRING_AGG(FirstName, ' ') AS [STRING_AGG]
+                    --> se executarmos dessa forma ira dar um erro pois ira exceder o numeros de bits;
+
+                    -> para concertar esse erro podemos fazer da seguinte forma: 
+
+                    SELECT STRING_AGG(TRY_CAST(FirstName AS VARCHAR(MAX), ' ')) AS [STRING_AGG]
+                        --> ele ira retornar o valor "Mr., Mrs., Ms., Miss", ou seja, ele ira concatenar os valores da coluna separando por ESPACO; 
+    
+
+
+    # STRING_SPLIT(): Divide uma string em linhas com base em um delimitador, ou seja, voce passa a string e o delimitador e ele ira dividir a string em linhas,ao inves de passarmos uma tabela ou coluna que queiramos o STRING_SPLIT ele vai estar dentro do from, porque? porque ele ira gerar uma coluna de uma subtabela, exemplo:
+
+        /*
+            STRING_SPLIT(Nome_da_Coluna, 'Delimitador') : RETORNA UMA TABELA
+        */
+
+        SELECT value AS DevDojo
+            FROM STRING_SPLIT('William Suane grande mestre Jedi do DevDojo', ' ')
+
+            /*
+                ira retorar: 
+                    William
+                    Suane
+                    grande
+                    mestre
+                    Jedi
+                    do
+                    DevDojo
+            */
+        
+        -> usado para quando passarmos uma expressao ou String que queremos que ela fique quebrada por linhas, tambem podemos utilizar String_Split, isso ja gera uma tabel de uma unica coluna
+
+
+
+    EXERCICIO DE AULA: 
+
+        -> fazer com que o inicio de cada letra dessa expressao fique em maiusculo, 'willian suane grande mestre jedi do devdojo'
+
+
+            SELECT value,
+                1 --LEFT(value, 1) AS[PRIMEIRA LETRA],
+                2 --UPPER(LEFT(value, 1)) AS[PRIMEIRA LETRA UPPER]
+                3 --RIGHT(value, LEN(value) -1 ) [RESTANTE]
+                   
+                CONCAT(UPPER(LEFT(value, 1)) AS[PRIMEIRA LETRA UPPER], RIGHT(value, LEN(value) -1 ) [RESTANTE]) AS [NOME MAIUSCULO]
+
+                   -> caos quiramos apresentar isso somente em uma linha 
+
+                STRING_AGG(CONCAT(UPPER(LEFT(value, 1)), RIGHT(value, LEN(value) -1 ), ' ') AS [NOME MAIUSCULO EM UMA LINHA]
+
+                FROM STRING_SPLIT('willian suane grande mestre jedi do devdojo', ' ') 
+
+
+            -> Primeiro estamos vendo que cada palavra esta sendo separada por espaco, e esta retornando em uma unica coluna que se chama value, depois pegamos o left para que consigamos resgatar a primeira letra de cada palavra, so que queremos ela em maiuscula, depois utilizamos o right para pegar o restante da palavra, toda palavra ira vir em minusculo para isso podemos colocar o -1, que ele ira deixar de trazer a primeira letra, e ira trazer o restante da palavra, exemplo -> 'illian', agora vamos ter a direita nossas letras minuscula, para juntar isso podemos utilizar a funcao concat, onde ela ira juntar as funcoes aninhadas;
+
+
+
+
+
+
+
+
+36. // SUBQUERY (SUBCONSULTA) - PARTE 1 // 
+
+    -   SELECT  BusinessEntityID,
+                NationalIDNumber,
+                LoginID,
+                OrganizationLevel, 
+                JobTitle,
+                BirthDate,
+                MaritalStatus,
+                Gender,
+                HireDate,
+                YEAR(HireDate) AS [Ano de Contratacao],
+                VacationHours,
+                SickLeaveHours,
+                ModifiedDate
+
+                FROM HumanResources.Employee
+        WHERE [Ano de Contratacao]
+
+            -> Nao podemos fazer dessa forma pois o compilador nao aceita, porque primeiro e executado o from depois o where e depois o select, para isso podemos utilizar o subquery, onde podemos fazer a subconsulta dentro do where, exemplo:
+
+                SELECT  BusinessEntityID,
+                        NationalIDNumber,
+                        LoginID,
+                        OrganizationLevel, 
+                        JobTitle,
+                        BirthDate,
+                        MaritalStatus...
+                FROM HumanResources.Employee
+
+                    -> isso tudo ai e uma consulta se quisessemos que isso vire um fonte de dados para mim? a partir desse momento estamos olhando uma tabela Employee, mas se eu quiser que essas colunas sejam "tabelas" para mim? 
+
+                
+        -> exemplo: 
+
+            SELECT * 
+                FROM (
+                    SELECT  BusinessEntityID,
+                            BusinessEntityID,
+                            NationalIDNumber,
+                            LoginID,
+                            OrganizationLevel, 
+                            JobTitle,
+                            BirthDate,
+                            MaritalStatus,
+                            Gender,
+                            HireDate,
+                            YEAR(HireDate) AS [Ano de Contratacao],
+                            VacationHours,
+                            SickLeaveHours,
+                            ModifiedDate
+                    FROM HumanResources.Employee
+                ) AS DevDojo
+
+            -> Se executarmos iremos ter o mesmo resultado com uma pequena diferenca, tudo dentro das aspas esta sendo executado em primeiro, lembram-se minha consuta vai selecionar tudo que esta dentro do from;
+
+
+            atualizando...
+
+            SELECT * 
+                FROM (
+                    SELECT  BusinessEntityID,
+                            BusinessEntityID,
+                            NationalIDNumber,
+                            LoginID,
+                            OrganizationLevel, 
+                            JobTitle,
+                            BirthDate,
+                            MaritalStatus,
+                            Gender,
+                            HireDate,
+                            YEAR(HireDate) AS [Ano de Contratacao],
+                            VacationHours,
+                            SickLeaveHours,
+                            ModifiedDate
+                    FROM HumanResources.Employee
+                ) AS DevDojo
+
+            WHERE [Ano de Contratacao] = 2008
+
+                -> agora poderiamos utilizar o apelido que demos para a subconsulta, e poderiamos utilizar o [Ano de Contratacao] para fazer a comparacao, e ele ira retornar somente os valores que foram contratados em 2008;
+
+
+        -> atencao: as colunas que nao estiverem dentro do bloco interno nao conseguimos trazer para o bloco externo, exemplo: 
+
+            SELECT  BusinessEntityID,
+                    NationalIDNumber,
+                    LoginID,
+                    OrganizationLevel, 
+                    [Titulo de Trabalho]
+
+                FROM (
+                    SELECT  BusinessEntityID,
+                            BusinessEntityID,
+                            NationalIDNumber,
+                            LoginID,
+                            OrganizationLevel, 
+                            JobTitle [Titulo de Trabalho]
+                            BirthDate,
+                            MaritalStatus,
+                            Gender,
+                            HireDate,
+                            YEAR(HireDate) AS [Ano de Contratacao],
+                            VacationHours,
+                            SickLeaveHours,
+                            ModifiedDate
+                    FROM HumanResources.Employee
+                ) AS DevDojo
+
+            WHERE [Ano de Contratacao] = 2008
+
+
+                --> tudo que estiver na consulta externa sera herdado da consulta interna, lembrando que dentro do for estamos criando uma consulta que apelidamos de DevDojo que esta vindo da tabela HumanResources.Employee, entao na tabela que apelidamos de DevDojo temos essas colunas (que esta dentro dos parenteses);
+
+
+        !! Atencao: e se quisessemos fazer uma ordenacao na consulta mais interna? 
+
+            -> SELECT  BusinessEntityID,
+                        NationalIDNumber,
+                        LoginID,
+                        OrganizationLevel, 
+                        [Titulo de Trabalho]
+
+                    FROM (
+                        SELECT  BusinessEntityID,
+                                BusinessEntityID,
+                                NationalIDNumber,
+                                LoginID,
+                                OrganizationLevel, 
+                                JobTitle [Titulo de Trabalho]
+                                BirthDate,
+                                MaritalStatus,
+                                Gender,
+                                HireDate,
+                                YEAR(HireDate) AS [Ano de Contratacao],
+                                VacationHours,
+                                SickLeaveHours,
+                                ModifiedDate
+                        FROM HumanResources.Employee
+                        ORDER BY BusinessEntityID
+                    ) AS DevDojo
+
+                WHERE [Ano de Contratacao] = 2008
+
+
+            --> se executarmos isso ira dar um erro, pois o order by nao pode ser utilizado dentro de uma subconsulta;
+
 
             
 
