@@ -2293,9 +2293,384 @@
             --> se executarmos isso ira dar um erro, pois o order by nao pode ser utilizado dentro de uma subconsulta;
 
 
-            
+
+
+
+
+
+
+
+
+37. // SUBQUERY (SUBCONSULTA) - PARTE 2 //
+
+    ->  Podemos fazer comparacoes tanto na parte interna ou externa da subconsulta, exemplo: 
+    
+    
+        SELECT  BusinessEntityID,
+                NationalIDNumber,
+                LoginID,
+                OrganizationLevel, 
+                [Titulo de Trabalho],
+                Gender, 
+
+                CASE Gender 
+                    WHEN 'M' THEN 'Masculino'
+                    WHEN 'F' THEN 'Feminino'
+                    ELSE 'Outro'
+                END AS [Genero]
+                
+                ... 
+
+
+        -> Uma das coisas que uma subconsulta permite e trazer colunas de outras tabelas, podemos utilizar o join ou tambem podemos trazer uma subsconsulta para trazer ele: 
 
             
+        SELECT  BusinessEntityID,
+
+                --> podemos colocar entre colunas, para abrir uma subquery dentro de uma outra em um nivel acima temos que colocar um parenteses, temos que colocar apos o select, e na maioria dos casos colocamos o (TOP 1), porque em uma subconsulta ele nao nos permite trazer mais de um resultado   
+
+                (SELECT FirstName FROM Person.Person) [Primeiro Nome].
+
+                    -> se colocarmos dessa forma ele ira dar um erro ao executar, dizendo que a esta trazendo mais de um resultado, se colocarmos dessa forma tambem ele ira repetir o mesmo nome para todos os registros, porque ele esta trazendo o primeiro nome de todos os registros, o que queremos e o primeiro nome para o primeiro registro;
+
+                -> queremos que o primeiro registro de Person.Person se correlacione com o primeiro registro de HumanResources.Employee, so que queremos isso em cada linha, queremos que a coluna BusinessEntityID seja comparada com a coluna Person.Person, como fariamos isso ? 
+
+                (SELECT TOP 1 FirstName FROM Person.Person AS PP WHERE PP.BusinessEntityID = DevDojo.BusinessEntityID)
+
+                    -> como o BusinessEntityID existe nas duas tabelas so que deixando ele sem o alias ira ficar confuso, temos que colocar o alias como DevDojo que foi assim que renomeanos a subconsulta;
+
+                    -> se fizermos dessa forma ele ira executar e aparecer o primeiro nome para cada BusinessEntityID especificoç
+
+                /*
+                LoginID,
+                OrganizationLevel, 
+                [Titulo de Trabalho],
+                BirthDate,
+                MaritalStatus,
+                Gender
+
+                CASE Gender 
+                    WHEN 'M' THEN 'Masculino'
+                    WHEN 'F' THEN 'Feminino'
+                    ELSE 'Outro'
+                END AS [Genero]
+
+                FROM (
+                    SELECT  BusinessEntityID...
+                */
+                    FROM HumanResources.Employee AS HRE
+                ) AS DevDojo 
+
+
+
+                -> se quisessemos ao inves de utilizar isso poderiamos fazer um JOIN, Assim como o exemplo abaixo: 
+
+                    USE AdventureWorks2022
+
+                    SELECT  DevDojo.BusinessEntityID,
+                            PE.EmailAddress
+                            NationalIDNumber,
+                            LoginID,
+                            OrganizationLevel, 
+                            [Titulo de Trabalho]
+
+                        FROM (
+                            SELECT  BusinessEntityID,
+                                    NationalIDNumber,
+                                    LoginID,
+                                    OrganizationLevel, 
+                                    JobTitle [Titulo de Trabalho],
+                                    BirthDate,
+                                    MaritalStatus
+                                
+                                FROM HumanResources.Employee
+                            ) AS DevDojo
+
+                    JOIN Person.EmailAddress AS PE 
+                        ON  DevDojo.BusinessEntityID = PE.BusinessEntityID
+
+
+
+
+
+
+
+
+
+38. // SUBQUERY (SUBCONSULTA) - PARTE 3 // 
+
+
+    -> temos uma tabela a HumanResources.Employee, se quisessemos trazer a pessoa que nasceu primeiro, ou seja, com a primeira data de nascimento, podemos fazer uma funcao de agregacao; 
+
+        SELECT MIN(BirthDate) FROM HumanResources
+
+    -> isso ira retornar somente uma coluna ou linha, se quisessemos trazer toda minha consulta filtrada por isso, como fariamos isso? 
+
+        SELECT * FROM HumanResources.Employee
+            WHERE BirthDate IN (SELECT MIN(BirthDate) FROM HumanResources.Employee)
+
+        --> aqui traremos todos os registros da pessoa que nasceu na menor data do sistema, e nao somente uma informacao, traremos seu BusinessEntityID, seu nome ...
+
+
+
+    -> Poderiamos fazer de outra forma tambem:
+
+        SELECT 
+            (SELECT TOP 1 PhoneNumber FROM Person.PersonPhone AS PPP WHERE PPP.BusinessEntityID = PP.BusinessEntityID) as [PhoneNumber]
+
+            * 
+
+        FROM Person.Person AS PP 
+            JOIN HumanResources.Employee AS HRE ON PP.BusinessEntityID = HRE.BusinessEntityID
+                            
+
+            --> Podemos fazer a subquery antes de selecionar todas as colunas, depois tambem podemos fazer um JOIN com outra tabela, se rodarmos dessa forma iremos trazer as colunas de Person.Person e todas as colunas de HumanResources.Employee, dependendo do que queremos isso nao e util, para que trazemos todas as colunas de somente uma tabelas podemos fazer 
+                - dessa forma: 
+
+            SELECT 
+                (SELECT TOP 1 PhoneNumber FROM Person.PersonPhone AS PPP WHERE PPP.BusinessEntityID = PP.BusinessEntityID) as [PhoneNumber]
+
+            PP.* 
+                -> Atribuir o alias para a tabela que queremos trazer todas as colunas, nesse caso ele ira trazer todas as colunas da tabela Person.Person, nao mais a de HumanResources.Employee, so que como fizemos um JOIN(Juncao) isso sera tudo que for comum entre as duas tabelas, e qual e meu elo de ligacao? e BusinessEntityID, so 
+
+                /* FROM Person.Person AS PP 
+                    JOIN HumanResources.Employee AS HRE ON PP.BusinessEntityID = HRE.BusinessEntityID*/
+
+
+        -> Em ordem de execucao iriamos primeiro para o from -> join -> select -> viria a subsconsulta ela e resolvida por ultimo, em termo de processamento nao seria o mais inteligente usalo, porque ela ira resolver a subconsulta para cada linha de (PP.*) , o mesmo e construido em tempo de execucao, as comparacoes de linha sera em tempo sera em tempo de execucao, pode que fique uma consulta muito pesada, entao e bom tomar cuidado com isso... 
+
+
+            -> a partir daqui temos que tomar uma pratica em relacao a subconsulta, que e utilizar o isnull(), porque caso ele nao encontre a mesma quantidade de BusinessEntityID em ambas as tabelas teriamos varios resultados sendo is null 
+
+                exemplo: 
+
+                    SELECT 
+                    
+                    ISNULL((SELECT TOP 1 PhoneNumber FROM Person.PersonPhone AS PPP WHERE PPP.BusinessEntityID = PP.BusinessEntityID), 'Nao Possui') as [PhoneNumber]
+
+                    PP.* 
+
+                    FROM Person.Person AS PP 
+                        JOIN HumanResources.Employee AS HRE ON PP.BusinessEntityID = HRE.BusinessEntityID
+
+                        ... 
+
+
+
+
+
+
+
+
+
+39. // EXPORTANDO ARQUIVOS A QUERY VIA AZURE DATA STUDIO (QUEBRA DE LINHA[CARRO AVANCADO]) //
+
+    -> Uma dica que ira ajudar bastante no dia a dia, que e fazer uma exportacao dessa nossa consulta em uma planilha em forma de xlsx ou de um arquivo xlv; 
+
+        ->  Imagina que chega seu chefe ou colabolador da empresa e solitite uma listagem ou relatorio alguma coisa que peca para fazer uma analise daquilo ou ter somente o relatorio em maos, isso certamente acontecera no seu dia a dia;
+
+
+        -> a partir de tal versao do sql foi incrementado um recurso chamado PRINT, ele ira imprimir a mensagem no console, podemos aprender tambem a quebra de linha 
+
+
+        - exemplo: 
+
+            PRINT 'DevDojo' + CHAR(13) + 'Java'
+
+                resultado:  'DevDojo
+                             Java'
+
+                --> CHAR(13) = Quebra de linha em comando sql
+
+        *!! Isso nao acontece quando colocarmos em um select, visualmente falando isso nao iria desmonstrar uma quebra de linha, mas se exportamos essa consulta veriamos isso, exemplo: 
+
+                SELECT 'DevDojo' + CHAR(13) + 'Java'
+
+                    resultado:  'DevDojoJava'
+
+
+        AZURE: 
+
+            1- icone a direita do console: faz a exportacao para .CSV        
+            2- icone a direita do console: faz a exportacao para .EXCEL         
+            3- icone a direita do console: faz a exportacao para .JSON            
+            4- icone a direita do console: faz a exportacao para .XML            
+            5- icone a direita do console: faz a exportacao para .CHART             
+
+
+
+
+
+
+
+
+
+
+40. // TIPO DE COMANDOS SQL / TIPOS DE INSTRUCOES EM SQL // 
+
+
+    (DML - DATA MANIPULATION LANGUAGE)
+
+        -> Linguagem de manipulacao de dados
+
+        -> operacoes basicas: INSERT , SELECT , UPDATE, DELETE, MERGE, BULK INSERT
+
+        -> DML possui o uso muito mais frequente do que a DDL, uso de DML por SQL embutido em aplicacoes ou via janelas de acesso ao banco de dados.
+
+
+
+
+    (DDL - DATA DEFINITION LANGUAGE)  
+
+        -> Criar e modificar estruturas dos objetos que armazenamos no Banco de Dados
+
+        -> Encontra instrucoes do tipo: 
+            
+            CREATE: Podendo criar tabelas visoes, esquimas, bases, trigers e procedimesntos armazenados.
+
+            ALTER: Alterar a propriedade de uma tabela ou de uma coluna de uma tabela
+
+            DROP: Droppar ou no caso excluir uma tabela ou base
+
+            TRUNCATE: Apaga os registros de uma tabela sem apagar a tabela 
+
+            DISABLE TRIGGER: E acionado a partir de uma acao 
+
+            ENABLE TRIGGER: Habilitar uma TRIGGER
+
+            UPDATE STATISTICS: Atualiza as estatisticas de uma tabela
+
+
+
+
+    (DCL - DATA CONTROL LANGUAGE )
+
+        -> Linguagem de controle de dados 
+
+        -> Utilizamos para o controle e gerenciamento de algumas permissoes de usuario, podemos colocar algumas regras para alguns tipos de acesso para isso utilizamos algo do tipo: 
+
+            GRANT, REVOKE, DENY 
+
+
+
+
+    (TCL - TRANSACTION CONTROL LANGUAGE)
+
+        -> Linguagem de controle transacional 
+
+        -> Usamos para gerenciar as mudancas feitas por algumas intrucoes do tipo DML, vamos entender mais a frente, as instrucoes serao do tipo: 
+
+            BEGIN, TRANSACTION, COMMIT, ROLLBACK 
+
+
+
+
+
+
+
+
+
+41. // CRIANDO UM DATABASE - CREATE (ALTER) DATEBASE (collation) // 
+
+    * Podemos escrever o nome da base, utilizando tudo maiusculo ou case sensitive exemplo: 
+
+        - dbCartoon
+        - Cartoon
+        - CARTOON
+
+    -> temos o comand CREATE + DATABASE podemos criar uma base de dados (DATABASE), exemplo: 
+
+        --DDL
+            CREATE DATABASE dbCartoon
+            GO
+
+    -> se executarmos isso ele ira criar uma base de dados chamada dbCartoon, se quisermos ver se a base foi criada podemos utilizar o comando:
+
+        SELECT * FROM sys.databases
+            --> views (visao do sistema) 
+
+        -> se colocarmos esse comando poderemos ver se realmente a base foi criada ou nao mas tambem podemos ver uma coluna chamada collation_name, que la ira aparecer a codificacao que foi utilizada para criar a base de dados, isso e um padrao de 'linguagem', exemplo: 
+
+            SELECT FirstName 
+                FROM Person.Person 
+                    WHERE FirstName = 'WILLIAN'
+
+                    --> Explicacao: nessa banco as strings sao case sensitive, ou seja, a inicial maiuscula e o resto minuscula, dependendo da configuracao do banco se fizermos essa comparacao where ele nao ira retorar ja em outros ele ira retornar, isso pode ser bom ou ruim, por podemos deixar da forma em que quisermos( WILLIAN = Willian ) -> alguns ira retornar e outros nao;
+
+
+    # Nos vamos utilizar a collation que tem uma performace bem melhor, mas antes vamos como podemos visualizar a collation da base de dados, exemplo: 
+
+        /*
+            sintaxe: 
+                SELECT DATABASEPROPERTYEX('Nome_da_Base', 'Collation')
+        */
+
+            SELECT DATABASEPROPERTYEX('AdventureWorks2022', 'Collation')
+                --> ele ira retornar o valor 'SQL_Latin1_General_CP1_CI_AS', ou seja, ele ira retornar a codificacao que foi utilizada para criar a base de dados, esse CI vem de -> CASE INSENSITIVE ou seja caracteres insensitivos, se colocarmos caracteres maiusculos e minusculos ele nao ira fazer essa diferenca, e o AS vem de -> ACCENT SENSITIVE, ou seja, ele nao esta captando a diferenca de um acento ou nao
+
+
+
+    # Vamos alterar a propriedade que criarmos, para isso podemos usar outro comando DDL que sera o alter, exemplo: 
+
+        ALTER DATABASE dbCartoon
+            COLLATE Latin1_General_BIN2
+
+            -> essa collation ira permitir um pouco mais de velocidade em algumas comparacoes e vamos ter que literalmente fazer a distincao de maiusculo para minusculo;
+
+
+
+
+
+
+
+
+
+42. // CRIANDO UMA TABELA ( CREATE TABLE, DROP IF EXISTS ) // 
+
+    -> Vamos aprender a criar uma tabela, mas antes podemos fazer uma verificao se ela existe ou nao, para que caso ela exista podemos altera-la ou exclui-la: 
+
+        commando: 
+
+            DROP TABLE IF EXISTS Nome_da_Tabela
+                --> DROP faz a exclusao da tabela, e o IF EXISTS faz a verificacao se ela existe ou nao, se ela existir ele ira excluir, se nao ele nao ira fazer nada;
+
+
+
+    # Vamos criar uma tabela, para isso podemos utilizar como base a sintaxe abaixo, falamos antes tambem sobre o SCHEMA, se nao definirmos o SCHEMA ela ira colocar o padrao que no caso seria o dbo.
+
+        /* 
+            sintaxe: 
+            CREATE TABLE SCHEMA.nome_tabela 
+                (nome_coluna tipo_coluna [DEFAULT valor])
+            CONSTRAINT nome_contraint tipo_Constraint,
+        */
+
+        exemplo: 
+
+                CREATE TABLE Desenhos (
+                    ID_Desenho TINYINT IDENTITY(1, 1) PRIMARY KEY NOT NULL, 
+                    Nome_Desenho VARCHAR(50) NOT NULL, 
+                    Data_Lancamento DATE NOT NULL,
+                    Quantidade_Episodios SMALLINT NOT NULL
+                ) 
+
+        -> E uma boa pratica que toda tabela contenha sua indentificao, nos seres humanos temos o CPF, para distinguir cada um, nossa tabela ira ter uma coluna especifica que ira indentifica-la.
+
+            IDENTITY(1, 1): Isso significa que a coluna ira comecar do valor 1 e a cada novo registro ele ira incrementar +1, ou seja, ele ira ser auto incrementavel, e o 1 e o valor inicial e o 1 e o incremento, ou seja, a cada novo registro ele ira incrementar +1;
+
+            PRIMARY KEY: E a indentificacao da tabela, so que ela ira ser uma chave unica, nesta tabela nao havera outra chave unica, nao ira ter outra chave de indentificao, chave primaria;
+
+            NOT NULL: Tambem adicionamos ao final o NOT NULL, ou seja, nao podemos adicionar um valor nulo para essa coluna, ela sempre tera que ter um valor;
+
+
+
+
+
+
+
+
+43. // INSERINDO DADOS, ATUALIZANDO DADOS (INSERT INTO, UPDATE WHERE) //
+
 
 
 
