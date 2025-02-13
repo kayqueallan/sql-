@@ -2671,7 +2671,476 @@
 
 43. // INSERINDO DADOS, ATUALIZANDO DADOS (INSERT INTO, UPDATE WHERE) //
 
+    -> Vamos aprender a como popular essa tabela, o que seria popular a tabela? quando criamos ela nao vem com nenhum dado dentro e para preencher essa tabela vamos adicionar dados entao chamamos isso de popular dados;
 
+
+    # INSERT:
+
+        SINTAXE 1: 
+
+            INSERT INTO <tabela>
+                (<lista-de-colunas>)
+            VALUES (<lista-de-valores>)
+
+            --> vamos colocar primeiro o nome da tabela, apos a lista de colunas, e depois a lista de valores que as colunas vao assumir
+
+            # os valores dos atributos devem ser informados na mesma ordem de criacao das tabelas ou os nome dos atributos devem ser informados
+
+            # As regras de integridade sao observadas no momento da inclusao da linha na tabela.nao existe meio insert, se temos um total de cinco campos se um dos campos esta com um tipo inadequado ou um dos campos e obrigatorio e nao foi fornecido o SQL nao ira fazer o servico pela metade ( ou inclui a linha ou nao inclui a linha ) 
+
+            # Sao observados os campos que aceitam nulos ou que tem default.
+
+
+            exemplo aplicado:
+
+            *
+            CREATE TABLE Desenhos (
+                ID_Desenho TINYINT IDENTITY(1, 1) PRIMARY KEY NOT NULL, 
+                Nome_Desenho VARCHAR(50) NOT NULL, 
+                Data_Lancamento DATE NOT NULL,
+                Quantidade_Episodios SMALLINT NOT NULL
+            )
+
+            
+            INSERT INTO Desenhos 
+                (ID_Desenho, Nome_Desenho, Data_Lancamento, Quantidade_Episodios)
+                VALUES (1 , 'Dragon Ball Z', '1989-04-26', 290 ), 
+                       (2 , 'Cavalheiros dos Zodiaco', 1985-12-01, 114),
+                       (3 , 'Shuratou', '1989-01-15', 38),
+                       (3 , 'Yuyu Hakusho', '1990-11-03', 112)
+
+                        --> podemos continuar inserindo valores a tabela e somente colocar uma virgula e continuar inserindo os valores ...
+
+            *
+
+        SINTAXE 2: 
+
+            INSERT INTO <tabela1>
+                (<lista-de-colunas)
+            SELECT ...
+
+            --> insercao em massa: e quando vamos inserir em uma nova tabela, dados a partir de um select, de uma consulta que eu fiz a partir de uma consulta existente isso pode acontecer quando eu tenho que fazer uma mudanca mais radical de layout de uma tabela para outra e eu preciso exportar dados que estao cadastrados em uma tabela previamente.
+
+
+
+            praticando...
+
+
+                INSERT INTO Desenhos 
+                    (ID_Desenho, Nome_Desenho, Data_Lancamento, Quantidade_Episodios)
+                    VALUES (1 , 'Dragon Ball Z', '1989-04-26', 290 ), 
+                        (2 , 'Cavalheiros dos Zodiaco', 1985-12-01, 114),
+                        (3 , 'Shuratou', '1989-01-15', 38),
+                        (3 , 'Yuyu Hakusho', '1990-11-03', 112)
+
+                        --> colocamos o mesmo numero para primary key, isso nao pode pois a PK e uma chave unica onde so pode conter um valor sem repeticao do mesmo
+
+                        !!* nao podemos utilizar o primeiro valor como explicito, pois ele e auto incrementavel, ou seja, ele ira incrementar +1 a cada novo registro, entao nao podemos colocar um valor explicito para ele, ele ira fazer isso automaticamente;
+
+
+
+            corrigindo...
+
+                INSERT INTO Desenhos 
+                    (/*Data_Lancamento*/, Quantidade_Episodios)
+                    VALUES ('Dragon Ball Z', '1989-04-26', 290 ), 
+                        ('Cavalheiros dos Zodiaco', '1985-12-01', 114),
+                        ('Shuratou', '1989-01-15', 38),
+                        ('Yuyu Hakusho', '1990-11-03', 112)
+
+                        --> agora sim ele ira inserir os valores corretamente, pois nao estamos inserindo o ID_Desenho, pois ele e auto incrementavel;
+
+                    -> quando colocamos entre parenteses as colunas que voce quer inserir os valores, voce obrigatoriamente vai ter que colocar a mesma quantidade embaixo nos values, dessa forma que ele esta ai em cima ira dar erro na hora de rodar, porque nao contem o mesmo numero que debaixo, para isso podemos retirar o ID_Desenho dos parenteses;  
+
+
+
+    * como poderiamos modificar os dados? 
+
+        -> temos que tomar muito cuidado ao utilizar esse comando 
+    
+
+        # UPDATE 
+
+                EX: 
+                    UPDATE <tabela>
+                        SET <coluna1> = <expressao>,
+                        <coluna 2> = <expressao2>, ...
+                    WHERE <condicao-de-alteracao>
+
+
+                --> Coloque primeiro o nome da tabela, depois set - para selecionar as colunas as quais estamos alterando e o WHERE sendo opcional, se nao colocar vamos atualizar todos os registros da tabela; 
+
+                - Dica 1: para maiores atualizacoes faca o SELECT antes do UPDATE para visualizar os registros;
+
+                - Dica 2: se quiser atualizar um unico registro, informe a chave primaria no filtro WHERE
+
+    
+
+        praticando...
+
+            UPDATE kay.Desenhos 
+                SET Quantidade_Episodios = 300
+
+                -> se fizermos isso estamos mais o menos ferrados pois, nao temos nenhuma clausula / nenhuma coluna ou campo que restringisse esse update, entao ele ira atualizar todos os registros da tabela para episodios = 300; 
+
+            
+            UPDATE kay.Desenhos
+                SET Quantidade_Episodios = 300
+            WHERE ID_Desenho = 1
+
+                -> se fizermos isso ele ira atualizar somente o registro que tiver o ID_Desenho = 1, ou seja, ele ira atualizar somente o Dragon Ball Z para 300 episodios;
+
+
+
+
+
+
+
+
+
+44. // ALTERANDO UMA TABELA ( ALTER TABLE, ADD COLUMN, DELETE, DROP, TRUNCATE )
+
+    * usado para fazer alteracao da definicao de uma tabela Acoes de alteracao de tabela: 
+
+            -> Acrescentar coluna:
+                /* 
+                    sintaxe: 
+                    ALTER TABLE nome_tabela
+                        ADD nome_coluna tipo_coluna [DEFAULT valor]
+                */
+                - a coluna e adicionada no final da tabela
+                - Quando a tabela ja possui registros incluidos, essa nova coluna deve aceitar valores nulos ou ser preenchida com default
+
+            -> Excluir coluna 
+            -> Alterar definicao de coluna 
+            -> Acrecentar constraint (retricao)
+            -> Excluir constraint
+
+
+        --> alteracao de definicao de coluna: 
+        ALTER TABLE empregado
+            ALTER COLUMN email varchar2(50);
+                -> modificando na tabela empregado a coluna email para varchar2(50);
+
+        --> acrescentar coluna:
+            ALTER TABLE empregado 
+                ADD email varchar2(40);
+        
+                adicionando nova coluna a tabela empregado
+
+        --> Excluir coluna:
+        ALTER TABLE empregado
+            DROP COLUMN (email);
+
+                excluindo da tabela empregado a coluna email 
+    
+
+    /-/
+
+
+    -> ? Temos outros comandos DDL, temos a tabela desenhos que tem quatro colunas, e se quisessemos adicionar mais uma coluna nela? 
+
+        ALTER TABLE kay.Desenhos
+            ADD Coisas_de_Desenhos VARCHAR(50) --null
+                --> nao estamos vendo esse null mais ele acontece por deibaixo dos panos, se dermos um select veremos que toda coluna ficara com o campo como null;
+
+    
+
+    -> ? Agora se quisessemos deletar uma coluna? 
+
+        ALTER TABLE kay.Desenhos
+            DROP COLUMN Coisas_de_Desenhos
+                --> se fizermos isso ele ira deletar a coluna Coisas_de_Desenhos da tabela Desenhos, e se fizermos um select veremos que a coluna nao existe mais;
+
+
+
+    -> ? E se quisessemos alterar a variavel de uma coluna? 
+
+        ALTER TABLE kay.Desenhos 
+            ALTER COLUMN Quantidade_Episodios INT
+                --> se fizermos isso ele ira alterar a coluna Quantidade_Episodios de SMALLINT para INT, ou seja, ele ira alterar o tipo da coluna;
+
+
+    -> ? E agora suponhamos que voce queira deletar todo conteudo de uma tabela sem destruir a tabela, porque fariamos isso? depedende do que queiramos, depende se quisessemos fazer umas tarefas agendadas, a gente chama isso de job que e zerar uma tabela e popular ela novamente, podemos fazer algo do tipo assim, ele ira apagar todos os registros de uma tabela: 
+
+        TRUNCATE TABLE Desenhos
+            --> se fizermos isso ele ira apagar todos os registros da tabela Desenhos, mas a tabela continuara existindo, so que sem registros;
+
+
+    -> ? Suponhamos que ao inves de fazermos um truncate nos queiramos deletar algum registro em especifico da nossa tabela: 
+
+        DELETE FROM Desenhos 
+            WHERE ID_Desenho = 3
+              --> se fizermos isso ele ira deletar o registro que tiver o ID_Desenho = 3, ou seja, ele ira deletar o Shuratou da tabela Desenhos;
+
+        DELETE FROM Desenhos
+            --> se fizermos isso ele ira deletar todos os registros da tabela Desenhos, ou seja, ele ira deletar todos os registros da tabela Desenhos, assim como o truncate;
+
+
+
+    -> ? E se quisermos deletar a tabela inteira? 
+
+        DROP TABLE IF EXISTS Desenhos
+            --> se fizermos isso ele ira deletar a tabela Desenhos, ou seja, ele ira deletar a tabela inteira, e se fizermos um select para ver se a tabela existe ele ira retornar que a tabela nao existe mais;
+
+
+
+
+
+
+
+
+
+45. // CRIANDO UMA TABELA A PARTIR DA OUTRA, USANDO OUTRA DATABASE( SELECT INTO ) //
+
+    SELECT * FROM dbo.Desenhos
+
+    -> Suponhamos que isso realmente vai acontecer, querer copiar essa tabela ou se quisermos duplicala ou quisermos criar outra tabela atraves dessa
+
+
+    * teremos que fazer: 
+
+        SELECT * INTO dbo.Desenhos_2
+            FROM dbo.Desenhos
+
+            -> se fizermos isso ele ira criar uma nova tabela chamada Desenhos_2 e ira copiar todos os registros da tabela Desenhos para a tabela Desenhos_2, ou seja, ele ira duplicar a tabela Desenhos para Desenhos_2;
+
+
+
+    * Podemos trazer apenas algumas colunas desejadas tambem, e adicionar uma clausula Where e alguns operadores a mais;
+
+        SELECT ID_Desenho,
+               Nome_Desenho, 
+               Quantidade_Episodios
+            INTO dbo.Desenhos_3
+        FROM dbo.Desenhos 
+        WHERE ID_Desenho > 1
+            --> se fizermos isso ele ira criar uma nova tabela chamada Desenhos_3 e ira copiar somente os registros que tiverem o ID_Desenho > 1;
+
+
+    
+    * Se quisermos podemos fazer tambem, vamos querer pegar o registro de outra DataBase(AdventureWorks2022), podemos fazer transacoes entre elas sem problemas, exemplo: 
+
+        UPDATE dbo.Desenhos_2
+            SET Data_Lancamento = (SELECT MAX(TRY_CAST(ModifiedData AS DATE)) FROM AdventureWorks2022.Person.Person)
+        WHERE ID_Desenho = 3
+
+            --> O que estamos fazendo aqui e atualizando um registro de uma tabela, estamos setando um novo valor para a coluna Data_Lancamento em especifico para o registro que tiver o ID_Desenho = 3, estamoc fazendo esse set atraves de uma subquery que esta vindo da base de dados AdventureWorks2022, e estamos pegando o valor maximo da coluna ModifiedData e estamos tentando fazer um cast para date, pois na nossa coluna da tabela desenho e do tipo date, se puxarmos sem fazer a conversao ele ira puxar do tipo DATETIME isso ira dar um erro de execucao, e estamos fazendo isso para o registro que tiver o ID_Desenho = 3;
+
+
+
+    * Se selecionarmos isso tudo e executar ira mostrar o resultado desejado, estamos acessando isso atraves do dbCartoon atraves da AdventureWorks, queremos criar uma tabela atraves dessa consulta abaixo 
+
+        SELECT PP.BusinessEntityID,
+               ISNULL(Title, '') AS Title,
+               CONCATE_WS(' ', FirstName, MiddleName, LastName) AS FullName,
+               PEA.EmailAddress,
+               PPP.PhoneNumber,
+               TRY_CAST(PP.ModifiedData AS DATE) AS ModifiedData
+               
+            FROM AdventureWorks2022.Person.Person AS PP 
+            JOIN AdventureWorks2022.Person.EmailAddress AS PE
+                ON PP.BusinessEntityID = PE.BusinessEntityID
+            JOIN AdventureWorks2022.Person.PersonPhone AS PPP
+                ON PP.BusinessEntityID = PPP.BusinessEntityID
+        WHERE MiddleName IS NOT NULL 
+
+
+        atualizando ... 
+
+
+        SELECT PP.BusinessEntityID,
+               ISNULL(Title, '') AS Title,
+               CONCAT_WS(' ', FirstName, MiddleName, LastName) AS FullName,
+               PE.EmailAddress,
+               PPP.PhoneNumber,
+               TRY_CAST(PP.ModifiedDate AS DATE) AS ModifiedData
+
+        -> INTO dbCartoon.dbo.Pessoa
+               
+            FROM AdventureWorks2022.Person.Person AS PP 
+            JOIN AdventureWorks2022.Person.EmailAddress AS PE
+                ON PP.BusinessEntityID = PE.BusinessEntityID
+            JOIN AdventureWorks2022.Person.PersonPhone AS PPP
+                ON PP.BusinessEntityID = PPP.BusinessEntityID
+        WHERE MiddleName IS NOT NULL 
+
+            -> como podemos ver estamos dentro da datebase de dbCartoon, e estamos atraves desse select criando uma tabela na base de dados dbCartoon chamada Pessoa, vindo de outra base de dados chamada AdventureWorks, para verificarmos se realmente esta criando essa tabela na base de dados dbCartoon, podemos colocar
+                * nome_da_base.schema.nome_da_tabela, e se fizermos isso ele ira criar a tabela Pessoa na base de dados dbCartoon;
+
+
+
+    * Agora vamos fazer o seguinte, trouxemos nessa massa de dados um filtro do middle name quando ele for null, entao vieram 11 mil linhas, agora queremos atualizar toda minha tabela, podemos fazer o seguinte: 
+
+        INSERT INTO Dbo.Pessoa
+
+            SELECT PP.BusinessEntityID,
+               ISNULL(Title, '') AS Title,
+               CONCAT_WS(' ', FirstName, MiddleName, LastName) AS FullName,
+               PE.EmailAddress,
+               PPP.PhoneNumber,
+               TRY_CAST(PP.ModifiedDate AS DATE) AS ModifiedData
+
+            --INTO dbCartoon.dbo.Pessoa
+
+            FROM AdventureWorks2022.Person.Person AS PP 
+            JOIN AdventureWorks2022.Person.EmailAddress AS PE
+                ON PP.BusinessEntityID = PE.BusinessEntityID
+            JOIN AdventureWorks2022.Person.PersonPhone AS PPP
+                ON PP.BusinessEntityID = PPP.BusinessEntityID
+        WHERE MiddleName NULL
+
+            -> Estamos inserindo na nossa tabela Pessoa, vindo da massa de adventureWorks, mas diferente de antes agora ja temos uma tabela, mas agora vamos popular ela com o filtro sendo MiddleName NULL, estamos comentando o into porque temos ja nossa tabela entao colocamos la em cima INSERT INTO nome_da_tabela_ ja existente;
+
+
+
+
+
+
+
+
+
+46. // FALANDO UM POUCO DE MODELAGEM DE DADOS PT1 // 
+
+    -> O que e modelagem de dados? 
+
+        -> E o processo de criar um modelo de dados para um sistema de informacao por meio de um conjunto de conceitos e tecnicas que ajudam a descrever e representar os dados que serao armazenados no banco de dados, e tambem as regras de negocio que serao aplicadas a esses dados;
+
+            
+    # ENTIDADES 
+
+        -> E um objeto ou conceito do mundo real que pode ser identificado e descrito, e que possui um significado para o negocio, e que sera armazenado no banco de dados, exemplo: 
+
+            - Pessoa, Produto, Departamento, Funcionario, Cliente, Fornecedor, Venda, Compra, etc...
+
+        -> Cada entidade e representada por uma tabela no banco de dados, e cada linha da tabela representa uma instancia da entidade, ou seja, um registro da entidade;
+
+        -> Cada coluna da tabela representa um atributo da entidade, ou seja, uma caracteristica da entidade, exemplo: 
+
+            - Pessoa: Nome, CPF, Data de Nascimento, Sexo, Endereco, Telefone, Email, etc...
+
+    
+    # ATRIBUTOS
+
+        -> E uma caracteristica ou propriedade de uma entidade, e que descreve um aspecto da entidade, e que sera armazenado no banco de dados, exemplo: 
+
+            - Pessoa: Nome, CPF, Data de Nascimento, Sexo, Endereco, Telefone, Email, etc...
+
+        -> Cada atributo e representado por uma coluna na tabela do banco de dados, e cada valor da coluna representa um valor do atributo, ou seja, um valor do aspecto da entidade;
+
+
+    # RELACIONAMENTO
+
+        -> E uma associacao entre duas ou mais entidades, e que descreve como as entidades estao relacionadas entre si, e que sera armazenado no banco de dados, exemplo: 
+
+            - Venda: Cliente, Produto, Funcionario, Data, Valor, etc...
+
+        -> Cada relacionamento e representado por uma chave estrangeira na tabela do banco de dados, e que relaciona duas ou mais entidades entre si, e que descreve como as entidades estao relacionadas entre si;
+
+        -> Cada chave estrangeira e uma coluna na tabela do banco de dados, e que referencia a chave primaria de outra tabela, e que descreve como as entidades estao relacionadas entre si;
+
+
+    # CARDINALIDADE 
+
+        -> E a quantidade de ocorrencias de uma entidade que podem estar associadas a uma ocorrencia de outra entidade, e que descreve como as entidades estao relacionadas entre si, e que sera armazenado no banco de dados, exemplo: 
+
+            - Venda: Cliente, Produto, Funcionario, Data, Valor, etc...
+
+        -> Cada cardinalidade e representada por um tipo de relacionamento na tabela do banco de dados, e que descreve como as entidades estao relacionadas entre si, e que sera armazenado no banco de dados;
+
+        -> Cada tipo de relacionamento e uma coluna na tabela do banco de dados, e que descreve como as entidades estao relacionadas entre si, e que sera armazenado no banco de dados;
+
+            TIPOS:
+
+                1 -> 1 
+                1 -> N
+                N -> 1
+                N -> N
+
+
+
+
+
+
+
+
+
+47. // MODELO LOGICO // 
+
+    -> E a representacao de um modelo de dados para um sistema de informacao por meio de um conjunto de conceitos e tecnicas que ajudam a descrever e representar os dados que serao armazenados no banco de dados, e tambem as regras de negocio que serao aplicadas a esses dados;
+
+    -> O modelo logico e uma representacao abstrata do modelo de dados, e que descreve as entidades, os atributos, os relacionamentos, as cardinalidades, as chaves primarias, as chaves estrangeiras, as restricoes, as regras de negocio, etc...
+
+
+        MAPEAMENTO LOGICO: 
+
+            1:N -> O lado 'N' recebe a FK(FOREIGN KEY)
+            1:1 -> Uniao de tabelas
+            N:N -> Nova tabela para relacionamentos
+
+
+
+
+
+
+
+
+
+
+48. // NORMALIZACAO - INTRODUCAO // 
+
+    -> Normalizacao e o processo de organizacao de dados de um banco de dados. Isso inclui a criacao de tabelas e o estabelecimento de relacoes entre essas tabelas de acordo com as regras projetadas para proteger os dados e tornar o banco de dados mais flexivel, eliminando a redundancia e a pedendencia incosistente;
+
+        -> O que e uma dependencia inconsistente? Embora seja intuitivo para um usario procurar na tabela clientes o endereco de um determinado cliente, talvez nao faca sentido procurar determinado cliente, talvez nao faca sentido procurar o salario do funcionario que chama esse cliente. O salario do funcionario esta relacionado ou depende do funcionario e, portanto, deve ser movido para a tabela funcionarios. As dependencias inconsistentes podem dificultar o acesso aos dados porque o caminho para encontrar os dados pode estar ausente ou quebrado.
+
+            -> Anomailias sao mudancas em dados que podem gerar uma inconsistencia no banco de dados relacional, sao tres anomalias: anomalia de insercao, de remocao e de atualizacao;
+    
+
+
+    # PRIMEIRA FORMA NORMAL: 
+
+        -> Eliminar grupos repetidos em tabelas individuais
+        -> Cria uma tabela separada para cada conjundo de dados relacionados.
+        -> Indentifique cada conjunto de dados relacionados com uma chave primaria.
+
+    
+    # SEGUNDA FORMA NORMAL: 
+
+        -> Estiver na primeira forma normal
+        -> Cada atributo nao principal for dependente da chave primaria inteira
+        -> Se a tabela possui chave primaria composta, se um atributo depende apenas de uma parte da chave primaria, ele deve ser colocado em outra tabela
+        -> Crie tabelas separadas para conunto de valores que se aplicam a varios registros 
+        -> Relacione essas tabelas com uma chave estrangeira 
+
+    
+    # TERCEIRA FORMA NORMAL:
+
+        -> Estiver na 1FN e 2FN
+        -> Nenhuma coluna nao-chave depender de outra coluna nao-chave
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+           
 
 
 
@@ -2682,6 +3151,7 @@
 
 
 
+            
 
 
 
