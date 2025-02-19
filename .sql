@@ -3119,7 +3119,607 @@
         -> Nenhuma coluna nao-chave depender de outra coluna nao-chave
 
 
+
+
+
+
+
+
+
+
+49. // CONSTRAINTS (PRIMARY KEY, UNIQUE, DEFAULT, CHECK, FOREIGN KEY)//
+
+    -> Vamos criar uma nova datebase chamada DevDojo, criando uma tabela Funcionario e Departamento, sendo Funcionario -> Departamento;
+
+        vamos criar entao Funcionario:
+
+            CREATE TABLE FUNCIONARIO(
+                MATRICULA INT PRIMARY KEY ,
+                NOME VARCHAR(100) NOT NULL,
+                DT_NASCIMENTO DATE, 
+            )
+
+            INSERT INTO FUNCIONARIO
+                VALUES (1000, NULL, '1999-12-31')
+
+                -> Se fizermos isso ele ira dar um erro de execucao, pois estamos tentando inserir um valor nulo para uma coluna que ha uma RESTRICAO(NOT NULL), essa restricao e chamada de CONSTRAINT: 
+
+            CONSTRAINT: Ela te bloqueia, e deixar seu sistema mais confiavel, pois se queremos que esse nome receba null ou nao deixe ele ter valores o not null ja e interesante, ele te obriga a colocar;
+
+
+                * e se fizermos isso: 
+
+                    INSERT INTO FUNCIONARIO
+                        VALUES (1000, ' ', '1999-12-31')
+
+                            -> Ele ira inserir na tabela o valor em branco isso nao e muito bom, e um problema para gente, ele nao aceita nulo mas aceita espaco em branco;
+
     
+    
+
+    # PT2 AULA: 
+
+        -> Imagine que a empresa cadastra duas matriculas sendo elas diferentes, mas a pessoa tendo o mesmo nome a mesma data de nascimento, o mesmo cpf, tudo isso indica que foram criadas clones sem querer, e isso deixa o sistema muito ruim, pois tem duplicidade de dados, para resolver isso podemos fazer uma restricao de unicidade a UNIQUE;
+
+        CREATE TABLE FUNCIONARIO(
+            MATRICULA INT PRIMARY KEY IDENTITY(1000,1),
+            NOME varchar(30) UNIQUE NOT NULL, 
+            DATA_NASCIMENTO DATE
+        )
+
+            PRIMARY KEY: Nao ira aceitar valores nulos e valores repetidos na coluna, ou seja, ele ira ser uma chave unica;
+
+            UNIQUE: Ele ira aceitar valores nulos mas nao ira aceitar valores repetidos, ou seja, ele ira ser uma chave de unicidade alternativa, isso serve para colocarmos como uma chave unica sendo o cpf da pessoa, colocamos a matricula como PK e o cpf como UQ;
+
+        
+
+        ... Podemos escrever a constraint de outra forma tambem: 
+
+        --sintaxe: CONSTRAINT NOME_CONSTRAINT TIPO_CONSTRAINT (COLUNA)
+
+        CREATE TABLE FUNCIONARIO(
+            /* MATRICULA INT PRIMARY KEY IDENTITY(1000,1),
+            NOME varchar(30) UNIQUE NOT NULL, 
+            DATA_NASCIMENTO DATE */
+
+            CONSTRAINT PK_FUNCIONARIO PRIMARY KEY (MATRICULA),
+        )
+
+
+
+        - PODEMOS TAMBEM ADICIONAR CONSTRAINTS POR FORA DA TABELA: 
+            ALTER TABLE FUNCIONARIO 
+                ADD CONSTRAINT PK_FUNCIONARIO PRIMARY KEY (MATRICULA)
+
+
+        - PODEMOS REMOVER TAMBEM:
+            ALTER TABLE FUNCIONARIO
+                DROP CONSTRAINT PK_FUNCIONARIO
+
+
+
+
+    # PT3 AULA: 
+        -> La na modelagem de dados haviamos avisado que poderia existir a possibilidade de ter uma chave primaria composta, o que seria isso a nivel de script? vai ser uma chave primaria que ira ter duas colunas como valor, exemplo: 
+
+            CREATE TABLE FUNCIONARIO(
+                MATRICULA INT, 
+                NOME VARCHAR(30),
+                DATA_NASCIMENTO DATE,
+
+                CONSTRAINT PK_FUNCIONARIO PRIMARY KEY (MATRICULA, NOME)
+            )
+
+            INSERT INTO FUNCIONARIO 
+                VALUES(1, 'Kayque', '1999-12-31')
+                      (1, 'Lyvia', '1998-11-12')
+                      (2, 'Lyvia', '1999-12-31')
+
+                -> se colocarmos isso ele ira aceitar, mesmo que a matricula tenha numero igual, nao importa porque a chave primaria e uma combinacao da coluna matricula + nome;
+
+
+            
+        * temos uma constraint muito interessante chamada check
+
+            
+            CREATE TABLE FUNCIONARIO(
+                /*MATRICULA INT,
+                NOME VARCHAR(30)*/,
+                IDADE INT --CHECK (IDADE >= 18) 
+
+                --CONSTRAINT PK_FUNCIONARIO PRIMARY KEY (MATRICULA),
+                CONSTRAINT CK_IDADE CHECK (IDADE >= 18)
+            )
+
+                -> Isso faz com que a idade seja maior ou igual a 18, se tentarmos inserir um valor menor que 18 ele ira dar um erro de execucao, pois a constraint esta fazendo uma checagem e bloquei caso a insercao de valores menores que 18; !! PODEMOS FAZER DAS DUAS FORMAS ACIMA
+
+
+
+        * Alem da idade podemos fazer algumas atribuicoes padroes ou default, suponhamos que tenha uma coluna data criacao, o que queremos e pegar o momento exato disso no sistema, nada melhor do que usarmos um GETDATE() podemos fazer dessa forma;
+
+            CREATE TABLE FUNCIONARIO(
+                /*MATRICULA INT,
+                IDADE INT --CHECK (IDADE >= 18),
+                NOME VARCHAR(30)*/
+                DATA_CRIACAO DATETIME DEFAULT GETDATE()
+
+                    -> A partir desse momento ele esta pegando a data da criacao, ou seja, dos insert que estamos fazendo quando forem insertados
+            )
+
+
+            exemplo: 
+
+            INSERT INTO FUNCIONARIO (Nome, Idade)
+                VALUES ('Willian Suane', 30),
+                       ('DevDojo', 30),
+                       ('Kayque', 22)
+
+                       -> a partir de quando fizermos o insert disso ele ira adicionar ao BD, e nao precisamos adicionar essa coluna de data de criacao pois ela ja esta sendo adicionada automaticamente pelo GETDATE();
+
+        
+
+        -> Podemos adicionar isso como constraint depois tambem: 
+
+            ALTER TABLE FUNCIONARIO 
+                ADD CONSTRAINT DF_DATA_CRIACAO DEFAULT GETDATE() FOR DATA_CRIACAO
+
+                    --> O for seria para onde queremos acrscentar isso temos que colocar ele, e o default e o valor padrao que queremos adicionar a essa coluna;
+
+
+
+
+    # PT4 AULA: 
+
+        -> Agora vamos ver sobre a FOREIGN KEY, que e a chave estrangeira que ira nos permitir criar o vinculo entre tabelas diferentes;
+
+            !! vamos linkar entre as tabelas funcionario e tabela DEPARTAMENTO: 
+
+            CREATE TABLE Departamento(
+                COD_DEPARTAMENTO varchar(10) PRIMARY KEY,
+                --DESC_DEPARTAMENTO varchar(30) NOT NULL
+            )
+
+            CREATE TABLE Funcionario(
+                /*MATRICULA INT PRIMARY KEY IDENTITY(1,1),
+                NOME VARCHAR(30) NOT NULL,
+                DT_NASCIMENTO DATE*/
+
+                COD_DEPARTAMENTO varchar(10)
+
+                CONSTRAINT FK_COD_DEPARTAMENTO FOREIGN KEY COD_DEPARTAMENTO REFERENCES DEPARTAMENTO(COD_DEPARTAMENTO) 
+            )
+
+                -> O que estamos fazendo e, estamos linkando uma tabela a outra atraves da chave FOREIGN KEY, a tabela funcionario recebe a chave COD_DEPARTAMENTO da tabela Departamento, pois e uma relacao de 1 -> n ; com isso precisamos adicionar na tabela Funcionario uma coluna chamada COD_DEPARTAMENTO, com isso criamos uma constraint, adicionando o nome depois a chave depois a colunas a qual criamos na nossa tabela e depois a refencia para a tabela a qual deseja, sendo o nome da tabela(coluna). Assim criando relacao entre elas;
+    
+
+
+    # PT5 AULA: 
+    
+        -> Vemos que agora relacionando as tabelas recebemos alguns bloquios como por exemplo: excluir a tabela departamento, se tentarmos excluir a tabela departamento ele ira dar um erro de execucao, pois a tabela funcionario esta relacionada a tabela departamento, e nao podemos excluir a tabela departamento se tivermos funcionarios nela, para isso podemos fazer o seguinte: 
+
+            ALTER TABLE FUNCIONARIO
+                DROP CONSTRAINT FK_COD_DEPARTAMENTO
+
+                    -> se fizermos isso ele ira excluir a constraint que esta relacionando as tabelas, e com isso podemos excluir a tabela departamento sem problemas, pois nao temos mais a constraint que esta relacionando as tabelas;
+
+
+
+
+
+
+
+
+
+
+50. // MODELO FISICO //
+
+    -> O modelo fisico e a representacao concreta do modelo de dados para um sistema de informacao por meio de um conjunto de conceitos e tecnicas que ajudam a descrever e representar os dados que serao armazenados no banco de dados, e tambem as regras de negocio que serao aplicadas a esses dados;
+
+        -> Vamos criar uma representacao de um banco de dados, onde o exemplo sera descrito abaixo: 
+
+        USE KALLYER
+               
+        DROP TABLE IF EXISTS TBL_PESSOA
+            GO
+
+        CREATE TABLE TBL_PESSOA(
+            ID_PESSOA INT PRIMARY KEY IDENTITY(1,1),
+            NOME VARCHAR(100) NOT NULL,
+            CPF VARCHAR(11) UNIQUE NOT NULL,
+            DT_NASCIMENTO DATE NOT NULL,
+            SEXO CHAR(1) NOT NULL,
+            EMAIL VARCHAR(100) NOT NULL CHECK (EMAIL <> ''),
+
+            CONSTRAINT ChQtdCpf CHECK (LEN(CPF) = 11),
+            CONSTRAINT ChSexo CHECK (UPPER(SEXO) = 'M' OR UPPER(SEXO) = 'F')
+
+        )
+
+
+
+        DROP TABLE IF EXISTS TBL_TIPO_LOGRADOURO
+            GO
+
+        CREATE TABLE TBL_TIPO_LOGRADOURO(
+            ID_TP_LOGRADOURO TINYINT PRIMARY KEY,
+            DESCRICAO VARCHAR(30) NOT NULL UNIQUE CHECK (DESCRICAO <> '')
+        )
+        
+
+
+        DROP TABLE IF EXISTS TBL_ENDERECO
+            GO
+
+        CREATE TABLE TBL_ENDERECO(
+            ID_ENDERECO INT PRIMARY KEY IDENTITY(1,1),
+            ID_PESSOA INT NOT NULL,
+            ID_TP_LOGRADOURO TINYINT NOT NULL,
+            ENDERECO VARCHAR(80) NOT NULL CHECK (ENDERECO <> ''),
+            NUMERO INT NOT NULL,
+            COMPLEMENTO VARCHAR(40),
+            CEP VARCHAR(8) NOT NULL,
+            
+            CONSTRAINT ChCep CHECK (CEP <> ''),
+            CONSTRAINT FkIdLogradouro FOREIGN KEY (ID_TP_LOGRADOURO) REFERENCES TBL_TIPO_LOGRADOURO(ID_TP_LOGRADOURO),  
+
+            CONSTRAINT FkIdPessoa FOREIGN KEY (ID_PESSOA) REFERENCES TBL_PESSOA(ID_PESSOA)
+        )
+    
+
+
+        DROP TABLE IF EXISTS TBL_TIPO_TELEFONE
+            GO
+        
+        CREATE TABLE TBL_TIPO_TELEFONE(
+            ID_TP_TELEFONE TINYINT PRIMARY KEY IDENTITY(1,1),
+            TIPO_TELEFONE VARCHAR(15) NOT NULL UNIQUE CHECK (TIPO_TELEFONE <>  '')
+        )
+
+
+
+        DROP TABLE IF EXISTS TBL_TELEFONE
+            GO
+
+        CREATE TABLE TBL_TELEFONE(
+            ID_TELEFONE INT PRIMARY KEY IDENTITY(1,1),
+            ID_PESSOA INT NOT NULL,
+            DDD VARCHAR(2) NOT NULL,
+            NUMERO VARCHAR(9) NOT NULL,
+            ID_TP_TELEFONE TINYINT NOT NULL,
+
+
+            CONSTRAINT ChIdPessoaTelefone CHECK (ID_PESSOA <> ''),
+            CONSTRAINT ChDDD CHECK (DDD <> ''),
+            CONSTRAINT ChNumero CHECK (NUMERO <> ''),
+            CONSTRAINT FkIdPessoaTelefone FOREIGN KEY (ID_PESSOA) REFERENCES TBL_PESSOA(ID_PESSOA),
+
+            CONSTRAINT FkTipoTelefone FOREIGN KEY (ID_TP_TELEFONE) REFERENCES TBL_TIPO_TELEFONE(ID_TP_TELEFONE)
+        )
+
+
+
+        DROP TABLE IF EXISTS TBL_DIRETORIA 
+
+        CREATE TABLE TBL_DIRETORIA(
+            ID_DIRETORIA TINYINT PRIMARY KEY IDENTITY(1,1),
+            COD_DIR VARCHAR(5) NOT NULL UNIQUE,
+            DIRETORIA VARCHAR(30) NOT NULL UNIQUE,
+
+            CONSTRAINT ChCodDir CHECK (COD_DIR <> ''),
+            CONSTRAINT ChDescDir CHECK (DIRETORIA <> '')
+        )
+
+
+
+        DROP TABLE IF EXISTS TBL_DEPARTAMENTO
+            GO
+
+        CREATE TABLE TBL_DEPARTAMENTO(
+            ID_DEPARTAMENTO TINYINT PRIMARY KEY IDENTITY(1,1),
+            COD_DEPARTAMENTO VARCHAR(5) NOT NULL,
+            DEPARTAMENTO VARCHAR(30) NOT NULL UNIQUE CHECK (DEPARTAMENTO <> ''),
+            COD_DIR VARCHAR(5) NOT NULL CHECK (COD_DIR <> ''),
+
+            CONSTRAINT UqCodDepartamento UNIQUE (COD_DEPARTAMENTO),
+            CONSTRAINT ChCodDep CHECK (COD_DEPARTAMENTO <> ''),
+            CONSTRAINT FkCodDir FOREIGN KEY (COD_DIR) REFERENCES TBL_DIRETORIA(COD_DIR)
+        )
+
+
+
+        DROP TABLE IF EXISTS TBL_CARGO
+            GO
+        
+        CREATE TABLE TBL_CARGO(
+            ID_CARGO SMALLINT PRIMARY KEY IDENTITY(1,1),
+            CARGO VARCHAR(40) NOT NULL,
+
+            CONSTRAINT UqCargo UNIQUE (Cargo),
+            CONSTRAINT ChCargo CHECK (Cargo <> '')
+        )
+
+
+
+        DROP TABLE IF EXISTS TBL_TP_FUNCIONARIO
+            GO
+        
+        CREATE TABLE TBL_TIPO_FUNCIONARIO(
+            ID_NIVEL_FUNCIONARIO TINYINT PRIMARY KEY IDENTITY(1,1),
+            TP_FUNCIONARIO VARCHAR(20) NOT NULL, 
+            
+            CONSTRAINT UqTpNivel UNIQUE (TP_FUNCIONARIO),
+            CONSTRAINT ChTpNivel CHECK (TP_FUNCIONARIO <> '')
+        )
+
+
+
+        DROP TABLE IF EXISTS TBL_FUNCIONARIO 
+            GO
+
+        CREATE TABLE TBL_FUNCIONARIO(
+            MATRICULA INT PRIMARY KEY IDENTITY(1000, 1),
+            ID_PESSOA INT NOT NULL,
+            DT_ADIMISSAO DATE NOT NULL,
+            DT_DEMISSAO DATE NULL,
+            SALARIO FLOAT NOT NULL CHECK (SALARIO > 700),
+
+            ID_CARGO SMALLINT NOT NULL,
+            ID_DEPARTAMENTO TINYINT NOT NULL,
+            ID_NIVEL_FUNCIONARIO TINYINT NOT NULL,
+
+            CONSTRAINT FkIdPessoaFunc FOREIGN KEY (ID_PESSOA) REFERENCES TBL_PESSOA(ID_PESSOA),
+            CONSTRAINT FkIdCargo FOREIGN KEY (ID_CARGO) REFERENCES TBL_CARGO(ID_CARGO)
+        )
+
+
+
+        DROP TABLE IF EXISTS TBL_PRODUTO 
+            GO
+        
+        CREATE TABLE TBL_PRODUTO(
+            ID_PRODUTO INT PRIMARY KEY IDENTITY(10000, 1),
+            NOME_PROD VARCHAR(100) NOT NULL UNIQUE CHECK(NOME_PROD <> ''),
+            PRECO FLOAT NOT NULL CHECK (PRECO >= 1),
+        )
+
+
+
+        DROP TABLE IF EXISTS TBL_CLIENTE
+            GO
+        
+        CREATE TABLE TBL_CLIENTE (
+            ID_CLIENTE INT PRIMARY KEY IDENTITY(100, 1),
+            ID_PESSOA INT NOT NULL, 
+            DT_CRIACAO DATETIME DEFAULT GETDATE(),
+
+            CONSTRAINT FkIdPessoaCliente FOREIGN KEY (ID_PESSOA) REFERENCES TBL_PESSOA(ID_PESSOA),
+        )
+
+
+
+        DROP TABLE IF EXISTS TBL_VENDA 
+            GO
+
+        CREATE TABLE TBL_VENDA(
+            ID_VENDA INT PRIMARY KEY IDENTITY(1,1),
+            DOCUMENTO VARCHAR(15) UNIQUE NOT NULL,
+            ID_CLIENTE INT NOT NULL CHECK (ID_CLIENTE <> ''),
+            MATRICULA INT NOT NULL,
+            DT_VENDA DATETIME DEFAULT GETDATE(),
+            TOTAL FLOAT,
+
+            CONSTRAINT FkIdCliente FOREIGN KEY (ID_CLIENTE) REFERENCES TBL_CLIENTE(ID_CLIENTE),
+            CONSTRAINT FkIdFuncionario FOREIGN KEY (MATRICULA) REFERENCES TBL_FUNCIONARIO(MATRICULA),
+            CONSTRAINT UqDocumento UNIQUE (DOCUMENTO),
+            CONSTRAINT ChChecaDocumento CHECK (DOCUMENTO <> '')
+        )
+
+        
+
+        DROP TABLE IF EXISTS TBL_PRODUTO_VENDA 
+            GO
+
+        CREATE TABLE TBL_PRODUTO_VENDA (
+            ID_PRODUTO_VENDA INT PRIMARY KEY IDENTITY(1,1),
+            ID_VENDA INT NOT NULL,
+            ID_PRODUTO INT NOT NULL,
+            PRECO_UNITARIO FLOAT NOT NULL,
+            QUANTIDADE INT NOT NULL CHECK (QUANTIDADE >= 1),
+
+            CONSTRAINT FkIdVenda FOREIGN KEY (ID_VENDA) REFERENCES TBL_VENDA(ID_VENDA),
+            CONSTRAINT FkIdProduto FOREIGN KEY (ID_PRODUTO) REFERENCES TBL_PRODUTO(ID_PRODUTO)
+        )
+        
+        /*
+        Explicacao: 
+            * A TBL_PESSOA armazena informações sobre indivíduos, incluindo nome, CPF (único e obrigatório), data de nascimento, sexo e e-mail. Restrições garantem que o CPF tenha exatamente 11 caracteres e que o sexo seja apenas "M" ou "F".
+
+            * A TBL_TIPO_LOGRADOURO define tipos de logradouro, como "Rua" ou "Avenida", garantindo que cada descrição seja única e não vazia.
+
+            * A TBL_ENDERECO associa um endereço a uma pessoa, contendo o tipo de logradouro, endereço, número, complemento e CEP. Ela possui chaves estrangeiras que vinculam a pessoa e o tipo de logradouro.
+
+            * A TBL_TIPO_TELEFONE lista tipos de telefone, como "Celular" ou "Residencial", assegurando que cada tipo seja único e não vazio.
+
+            * A TBL_TELEFONE armazena telefones das pessoas, incluindo DDD, número e tipo de telefone. Possui chaves estrangeiras que garantem a associação com uma pessoa e um tipo de telefone.
+
+            * A TBL_DIRETORIA registra diretorias dentro da organização, identificadas por um código único e um nome.
+
+            * A TBL_DEPARTAMENTO armazena departamentos, vinculando-os a uma diretoria específica. Cada departamento tem um código e um nome únicos.
+
+            * A TBL_CARGO define os cargos disponíveis na empresa, garantindo que cada cargo seja único e tenha uma descrição válida.
+
+            * A TBL_TIPO_FUNCIONARIO categoriza os funcionários por nível, como "Efetivo" ou "Temporário", assegurando que cada tipo seja único e válido.
+
+            * A TBL_FUNCIONARIO contém dados sobre os funcionários, incluindo matrícula (identificador único gerado automaticamente), a pessoa associada, data de admissão, data de demissão (se houver), salário (acima de 700), cargo, departamento e nível do funcionário.
+
+            * A TBL_PRODUTO registra produtos, armazenando nome (único e não vazio) e preço (mínimo de 1).
+
+            * A TBL_CLIENTE associa uma pessoa a um cliente, registrando também a data de criação automática.
+
+            * A TBL_VENDA armazena vendas, incluindo um documento único, cliente associado, data da venda e total da compra.
+
+            * A TBL_PRODUTO_VENDA vincula produtos a vendas, registrando o preço unitário e a quantidade adquirida, garantindo que cada venda esteja associada a um produto específico.
+        */
+
+
+
+    vamos agora popular a tabela: 
+
+        -- Inserindo dados na TBL_PESSOA
+        INSERT INTO TBL_PESSOA (NOME, CPF, DT_NASCIMENTO, SEXO, EMAIL)
+        VALUES 
+        ('Willian Suane', '12345678910', '2000-01-01', 'M', 'willian.suane@gmail.com'),
+        ('Wildnei Suane', '12345678911', '2001-01-01', 'M', 'wildnei.suane@gmail.com'),
+        ('Fabricio Chousa', '12345678912', '1991-04-12', 'M', 'fabricio.chousa@gmail.com'),
+        ('Giselle Almeida', '12345678913', '1982-04-12', 'F', 'giselle.almeida@gmail.com'),
+        ('Tony Stark', '12345678914', '1960-04-12', 'M', 'tony.stark@gmail.com'),
+        ('Natasha Romanoff', '12345678915', '1984-04-12', 'F', 'natasha.romanoff@gmail.com'),
+        ('Steve Rogers', '12345678916', '1918-04-12', 'M', 'steve.rogers@gmail.com'),
+        ('Bruce Banner', '12345678917', '1969-04-12', 'M', 'bruce.banner@gmail.com'),
+        ('Thor Odinson', '12345678918', '1970-04-12', 'M', 'thor.odinson@gmail.com'),
+        ('Peter Parker', '12345678919', '2000-04-12', 'M', 'peter.parker@gmail.com');
+
+        -- Inserindo dados na TBL_TIPO_LOGRADOURO
+        INSERT INTO TBL_TIPO_LOGRADOURO (ID_TP_LOGRADOURO, DESCRICAO)
+        VALUES 
+        (1, 'Rua'),
+        (2, 'Avenida'),
+        (3, 'Estrada'),
+        (4, 'Quadra');
+
+        INSERT INTO TBL_ENDERECO (ID_PESSOA, ID_TP_LOGRADOURO, ENDERECO, NUMERO, COMPLEMENTO, CEP)
+        VALUES 
+        (8, 4, 'Rua das Flores', 123, 'Apto 101', '12345678'),
+        (5, 1, 'Avenida Paulista', 456, NULL, '87654321');
+
+
+        -- Inserindo dados na TBL_TIPO_TELEFONE
+        INSERT INTO TBL_TIPO_TELEFONE (TIPO_TELEFONE)
+        VALUES 
+        ('Celular'),
+        ('Residencial'),
+        ('Trabalho');
+
+        -- Inserindo dados na TBL_TELEFONE
+        INSERT INTO TBL_TELEFONE (ID_PESSOA, ID_TP_TELEFONE, DDD, NUMERO)
+        VALUES 
+        (9, 1, '21', '999999999'),
+        (7, 2, '22', '999999999'),
+        (5, 1, '23', '999999999'),
+        (3, 2, '51', '999999999'),
+        (1, 1, '11', '999999999'),
+        (1, 2, '47', '999999999');
+
+        -- Inserindo dados na TBL_DIRETORIA
+        INSERT INTO TBL_DIRETORIA (COD_DIR, DIRETORIA)
+        VALUES 
+        ('D001', 'Diretoria Geral'),
+        ('D002', 'Diretoria Financeira'),
+        ('D003', 'Diretoria de TI');
+
+        -- Inserindo dados na TBL_DEPARTAMENTO
+        INSERT INTO TBL_DEPARTAMENTO (COD_DEPARTAMENTO, DEPARTAMENTO, COD_DIR)
+        VALUES 
+        ('DEP01', 'RH', 'D001'),
+        ('DEP02', 'TI', 'D003'),
+        ('DEP03', 'Financeiro', 'D002'),
+        ('DEP04', 'Vendas', 'D001'),
+        ('DEP05', 'Marketing', 'D002');
+
+        -- Inserindo dados na TBL_CARGO
+        INSERT INTO TBL_CARGO (CARGO)
+        VALUES 
+        ('Estagiário'),
+        ('Assistente'),
+        ('Técnico'),
+        ('Analista JR'),
+        ('Analista SR'),
+        ('Arquiteto'),
+        ('Engenheiro');
+
+        -- Inserindo dados na TBL_TIPO_FUNCIONARIO
+        INSERT INTO TBL_TIPO_FUNCIONARIO (TP_FUNCIONARIO)
+        VALUES 
+        ('Colaborador'),
+        ('Gerente'),
+        ('Diretor');
+
+        -- Inserindo dados na TBL_FUNCIONARIO
+        INSERT INTO TBL_FUNCIONARIO (ID_PESSOA, DT_ADIMISSAO, SALARIO, ID_CARGO, ID_DEPARTAMENTO, ID_NIVEL_FUNCIONARIO)
+        VALUES 
+        (8, '2022-01-10', 2700.00, 7, 3, 1),
+        (7, '2023-02-15', 20000.00, 5, 6, 3),
+        (6, '2021-05-20', 4500.00, 3, 7, 3);
+
+        -- Inserindo dados na TBL_PRODUTO
+        INSERT INTO TBL_PRODUTO (NOME_PROD, PRECO)
+        VALUES 
+        ('Pasta de Amendoim', 89.70),
+        ('Whey Protein', 129),
+        ('Creatina', 89),
+        ('Glutamina', 149),
+        ('Termogênico', 70);
+
+        -- Inserindo dados na TBL_CLIENTE
+        INSERT INTO TBL_CLIENTE (ID_PESSOA)
+        VALUES 
+        (1),
+        (2),
+        (3),
+        (10);
+
+        -- Agora insira as vendas, usando os ID_CLIENTE corretos
+        INSERT INTO TBL_VENDA (DOCUMENTO, ID_CLIENTE, MATRICULA, TOTAL)
+        VALUES 
+        ('DOC001', 100, 1000, 5300.00), -- Verifique o ID correto de cliente gerado
+        ('DOC002', 101, 1000, 800.00),
+        ('DOC003', 102, 1000, 12330.00);
+
+
+        -- Inserindo dados na TBL_PRODUTO_VENDA
+        INSERT INTO TBL_PRODUTO_VENDA (ID_VENDA, ID_PRODUTO, PRECO_UNITARIO, QUANTIDADE)
+        VALUES 
+        (1, 10000, 89.7, 9),
+        (1, 10001, 2000.00, 1),
+        (2, 10002, 800.00, 1);
+
+
+
+
+        -> Apos feita todas as insercoes podemos utilizar o comando select para visualizar os dados;
+
+            SELECT MATRICULA,
+                   NOME,
+                   DT_ADMISSAO,
+                   F.ID_DEPARTAMENTO,
+                   D.COD_DEPARTAMENTO,
+                   D.DEPARTAMENTO,
+                   DIR.COD_DIR,
+                   DIRETORIA
+            FROM TBL_FUNCIONARIO AS F
+                LEFT JOIN TBL_PESSOA AS P
+            ON F.ID_PESSOA = P.ID_PESSOA
+                LEFT JOIN TBL_DEPARTAMENTO AS D
+            ON F.ID_DEPARTAMENTO = D.ID_DEPARTAMENTO
+                LEFT JOIN TBL_DIRETORIA AS DIR
+            ON D.COD_DIR = DIR.COD_DIR
+
+        -> Visualizamos e agora queremos mudar o nome da diretoria, podemos pensar que seria apenas um update, mas...
+
+        UPDATE TBL_DEPARTAMENTO 
+            SET COD_DIR = 'D004'
+        WHERE COD_DEPARTAMENTO = 'DEP01'
+
+                -> Se rodarmos isso ele ira dar um erro, pois a tabela departamento esta relacionada a tabela diretorio, e nao podemos mudar o codigo da diretoria, pois ela esta relacionada a tabela departamento, e isso e uma integridade referencial, entao pensamos o seguinte vamos dar uma olhada na tbl_diretoria, ja que a raiz esta em tbl_diretoria vamos alterar ai que ira alterar nas outras tabelas: 
+
+        UPDATE TBL_DIRETORIA
+            SET COD_DIR = 'D004'
+        WHERE COD_DEPARTAMENTO = 'DEP01'
+
+                -> Se rodarmos isso ira novamente dar um erro, pois a tabela departamento esta relacionada a tabela diretorio, e nao podemos mudar o codigo da diretoria, pois ela esta relacionada a tabela departamento, e isso e uma integridade referencial;
+
+                    !! precisaremos de alguns ajustes para que conseguimos resolver isso, nas proximas aulas veremos a resolucao;
+
 
 
 
@@ -3455,14 +4055,14 @@
         ex: 
 
         CREATE TABLE Funcionario{
-        Matric INT NOT NULL, Nome CHAR(30) NOT NULL,
-        Salario MONEY NOT NULL, Cargo CHAR(15) DEFAULT 'Analista',
-        Estado CHAR(2) NOT NULL, Cod_Depto SMALLINT NULL,
+            Matric INT NOT NULL, Nome CHAR(30) NOT NULL,
+            Salario MONEY NOT NULL, Cargo CHAR(15) DEFAULT 'Analista',
+            Estado CHAR(2) NOT NULL, Cod_Depto SMALLINT NULL,
 
-        CONSTRAINT PK_Funcionario PRIMARY KEY (Matric),  
-        CONSTRAINT UQ_Nome UNIQUE(Nome),  
-        CONSTRAINT FK_Func_Depto FOREIGN KEY(Cod_Depto) REFERENCES Departamento (Cod_Depto) ON DELETE RESTRICT,
-        CONSTRAINT checkestado CHECK (ESTADO IN('MG', 'RJ', 'SP'))
+            CONSTRAINT PK_Funcionario PRIMARY KEY (Matric),  
+            CONSTRAINT UQ_Nome UNIQUE(Nome),  
+            CONSTRAINT FK_Func_Depto FOREIGN KEY(Cod_Depto) REFERENCES Departamento (Cod_Depto) ON DELETE RESTRICT,
+            CONSTRAINT checkestado CHECK (ESTADO IN('MG', 'RJ', 'SP'))
         }
 
 
