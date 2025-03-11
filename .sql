@@ -3468,7 +3468,8 @@
             ID_NIVEL_FUNCIONARIO TINYINT NOT NULL,
 
             CONSTRAINT FkIdPessoaFunc FOREIGN KEY (ID_PESSOA) REFERENCES TBL_PESSOA(ID_PESSOA),
-            CONSTRAINT FkIdCargo FOREIGN KEY (ID_CARGO) REFERENCES TBL_CARGO(ID_CARGO)
+            CONSTRAINT FkIdCargo FOREIGN KEY (ID_CARGO) REFERENCES TBL_CARGO(ID_CARGO),
+            CONSTRAINT FkIdDepartamento FOREIGN KEY (ID_CARGO) REFERENCES TBL_DEPARTAMENTO(ID_DEPARTAMENTO) 
         )
 
 
@@ -3729,6 +3730,63 @@
 
 
 
+51. // TRANSFORMAR LINHAS EM COLUNAS - PIVOT // 
+
+    -> O PIVOT e um operador que nos permite transformar linhas em colunas, ele e util quando queremos fazer uma analise de dados, e queremos transformar os dados de uma coluna em varias colunas, ele e muito util para fazer relatorios, e tambem para fazer comparacoes entre os dados, ele e muito util para fazer analises de dados, e tambem para fazer comparacoes entre os dados;
+
+        -> Podemos fazer isso atraves de uma subquery 
+
+
+    SELECT *
+        FROM(
+            SELECT BusinessEntityID,
+                YEAR(HireDate) AS Ano,
+                MONTH(HireDate) AS Mes 
+            FROM HumanResources.Employee
+        ) AS TBL 
+
+
+            --> Queremos pegar esses meses e deitar, quando falamos de subquery e falamos sobre ordem de processamento logico, o sql ira olhar primeiro o que esta dentro do from dentro do from fizemos um script, uma vez que ele foi resolvido ele ira jogar para o nivel de cima no SELECT(externo), para deitar esse cara temos que colocar o PIVOT:
+
+    /*
+        sintaxe: 
+
+        PIVOT (
+            funcao_agregacao(coluna)
+                FOR coluna_pivot IN (valor1, valor2, valor3, valor4, valor5, valor6, valor7, valor8, valor9, valor10, valor11, valor12)
+        ) AS NOME_DA_TABELA
+    */
+        
+    SELECT Ano,
+           [1] Jan, 
+           [2] Fev, 
+           [3] Mar, 
+           [4] Abr, 
+           [5] Mai, 
+           [6] Jun, 
+           [7] Jul, 
+           [8] Ago, 
+           [9] Set, 
+           [10] Out, 
+           [11] Nov, 
+           [12] Dez
+              
+        FROM(
+            SELECT BusinessEntityID,
+                YEAR(HireDate) AS Ano,
+                MONTH(HireDate) AS Mes 
+            FROM HumanResources.Employee
+        ) AS TBL 
+    PIVOT (
+        COUNT(BusinessEntityID)
+            FOR Mes IN ( [1], [2], [3], [4], [5], [6], [7], [8], [9], [10], [11], [12] )
+    ) AS PVT
+
+
+        -> Essa funcao esta contando quantos funcionarios foram contratados em cada mes, e ele ira trazer uma tabela com os meses e a quantidade de funcionarios contratados em cada mes;
+
+        -> Ditando como esta funcionando o codigo: 
+                - sql server execute o FROM para mim, apos executar isso deita para mim as colunas que queremos 'agregar(count)' pela coluna dele 'para(for)' coluna mes 'detro(in)' dos valores que queremos, e ele ira trazer a quantidade de funcionarios contratados em cada mes;
 
 
 
@@ -3738,33 +3796,864 @@
 
 
 
+
+52. // TRANSFORMAR COLUNAS EM LINHAS - UNPIVOT // 
+
+    -> O UNPIVOT e um operador que nos permite transformar colunas em linhas, ele e util quando queremos fazer uma analise de dados, e queremos transformar os dados de varias colunas em uma coluna, ele e muito util para fazer relatorios, e tambem para fazer comparacoes entre os dados, ele e muito
+
+
+        SELECT * INTO TblApoio
+            FROM(
+                SELECT Ano,
+                       [1] Jan, 
+                       [2] Fev, 
+                       [3] Mar, 
+                       [4] Abr, 
+                       [5] Mai, 
+                       [6] Jun, 
+                       [7] Jul, 
+                       [8] Ago, 
+                       [9] Set, 
+                       [10] Out, 
+                       [11] Nov, 
+                       [12] Dez
+                FROM(
+                    SELECT BusinessEntityID,
+                        YEAR(HireDate) AS Ano,
+                        MONTH(HireDate) AS Mes 
+                    FROM HumanResources.Employee
+                ) AS TBL 
+        )
+        PIVOT (
+            COUNT(BusinessEntityID)
+                FOR Mes IN ( [1], [2], [3], [4], [5], [6], [7], [8], [9], [10], [11], [12] )
+        ) AS PVT
+
+
+
+            -> Estamos passando todo esse select para uma tabela chamada TblApoio, e apos isso vamos fazer o UNPIVOT:
+
+            
+            /*
+                sintaxe: 
+                    UNPIVOT(
+                        coluna FOR coluna_pivot IN (valor1, valor2, valor3, valor4, valor5, valor6, valor7, valor8, valor9, valor10, valor11, valor12)
+                    )
+            */
+
+
+
+            SELECT Ano
+                FROM(
+                    SELECT Ano,
+                        Jan, 
+                        Fev, 
+                        Mar, 
+                        Abr, 
+                        Mai, 
+                        Jun, 
+                        Jul, 
+                        Ago, 
+                        Set, 
+                        Out, 
+                        Nov, 
+                        Dez 
+                    FROM TblApoio 
+                ) AS TBL
+
+                --> Ira ter uma pequena diferenca, queremos pegar a quantidade que esta no GRIG, essa quantidade queremos que ela fique em uma coluna do lado do ano, so que tambem quremos que esses messes/colunas fiquem um abaixo do outro;
+
+            UNPIVOT (
+                QTD FOR Meses IN (Jan, Fev, Mar, Abr, Mai, Jun, Jul, Ago, Set, Out, Nov, Dez)
+            ) AS UNPVT
+
+
+            -> Primeira coisa que vamos escrever ira ser um nome de uma coluna, pode ser qualquer nome, ele ira armazenar o quantitativo que esta no GRID, depois colocamos o FOR e apos colocaos um Nome para coluna e Depois colocamos IN e os valores que queremos que sejam transformados em linhas, e apos isso colocamos o nome da tabela que queremos que seja gerada;
+            
+            Finalizado sera: 
+
+                SELECT Ano, 
+                       Meses, 
+                       QTD
+                    FROM(
+                        SELECT Ano,
+                        Jan, 
+                        Fev, 
+                        Mar, 
+                        Abr, 
+                        Mai, 
+                        Jun, 
+                        Jul, 
+                        Ago, 
+                        Set, 
+                        Out, 
+                        Nov, 
+                        Dez 
+                    FROM TblApoio 
+                    ) AS TBL
+                UNPIVOT (
+                    QTD FOR Meses IN (Jan, Fev, Mar, Abr, Mai, Jun, Jul, Ago, Set, Out, Nov, Dez)
+                )
+
+                > Ira trazer o ano e a quantidade de funcionarios contratados em cada mes, e ira trazer em linhas, e nao em colunas;
+
+
+
+
+
+
+
+
+
+53. // VALOR MAXIMO DE VARIAS COLUNAS - VALUES (CONSTRUTOR DE TABELA) // 
+
+    -> O VALUES e um construtor de tabela que nos permite criar uma tabela temporaria, ele e util quando queremos fazer uma analise de dados, e queremos pegar o valor maximo de varias colunas, ele e muito util para fazer relatorios, e tambem para fazer comparacoes entre os dados; 
+
+
+        Exercicio: Queremos trazer o maior valor, nao importa importa de qual coluna apenas o maior valor;
+
+
+        SELECT Ano, 
+
+            (SELECT MAX(Valor)
+                FROM ( Values (Jan), (Fev), (Mar), (Abr), (Mai), (Jun), (Jul), (Ago), ([Set]), ([Out]), (Nov), (Dez) ) AS TBL(Valor)
+            ) as ColunaSubSelect
+        FROM TblApoio
+
+
+            -> Para obter o resultado desejedo fazemos uma subquery, fanzendo um select passando max, omax requer um argumento, e nisso colocamos dentro o argumento(valor), que nao e de nenhuma coluna, mas para frente iremos entender, depois colocamos FROM e abriremos mais um parenteses, dentro dele iremos passar uma instrucao chamada VALUES: 
+
+                O Values: utilizamos para popular tabelas, se olharmos na documentacao da microsoft ele ira estar descrito como construtor de tabela e e exatamente Eisso que ele esta fazendo, ele esta criando uma tabela temporaria onde passamos dentro dessa instrucao colunas, cada coluna colocamos entre parenteses, 
+
+
+    OUTRO EXEMPLO: 
+
+        SELECT * 
+            FROM( VALUES ('DevDojo', 'Java', 'Spring', 'Jedi William'),
+                         ('DevDojo, Sql Server', 'Azure Data Studio', 'Fabricio')
+                ) as TblVALUES2 (COLUNA1, COLUNA2, COLUNA3, COLUNA4)
+
+                -> Explicação
+                        SELECT *: Seleciona todas as colunas da tabela resultante.
+                        
+                        FROM (VALUES ...): Cria uma tabela temporária com os valores fornecidos.
+                        
+                        ('DevDojo', 'Java', 'Spring', 'Jedi William'): Primeira linha de valores.
+                        
+                        ('DevDojo, Sql Server', 'Azure Data Studio', 'Fabricio'): Segunda linha de valores.
+
+                -> AS TblVALUES2 (COLUNA1, COLUNA2, COLUNA3, COLUNA4): Define um alias para a tabela temporária (TblVALUES2) e nomeia as colunas.
+                
+                * O que está acontecendo
+                    - A instrução VALUES está sendo usada para criar uma tabela temporária com duas linhas e quatro colunas.
+
+                    - A tabela temporária é referenciada como TblVALUES2.
+
+                    - As colunas da tabela temporária são nomeadas COLUNA1, COLUNA2, COLUNA3 e COLUNA4.
+                        
+                    - O SELECT * recupera todas as colunas da tabela temporária.
+
+
+
+
+
+
+
+
+
+54. // MODELO FISICO - PARTE 2 //
+
+    * INTEGRIDADE REFERENCIAL DECLARATIVA 
+
+            [ON DELETE referencia_opcao]
+            [ON UPDATE referencia_opcao]
+
+                referencia_option: 
+
+                    RESTRICT | CASCADE | SET NULL | NO ACTION | SET DEFAULT
+
+            --> Quando criamos as tabelas com restricoes de chaves estrangeira, podemos colocar as questoes da integridade referencial declarativa no sentido que na exclusao de um registro o que vou fazer: exemplo vou fazer um restrict, vou fazer um cascade...
+
+            ex RESTRICT: 
+
+                CONSTRAINT FK_Func_Depto FOREIGN KEY(Cod_Depto) REFERENCES Departamento (Cod_Depto) ON DELETE RESTRICT
+
+                -> explicacao:  
+                    temos o nome da constraint, temos aos uma restricao do tipo FK, onde o campo cod_depto da tabela funcionario, refenrecia qual tabela? a tabela departamento onde o Cod_Depto e chave primaria, e temos a opcao ON DELETE... onde a restricao diz que nao vamos conseguir excluir departamento se ouver funcionarios no departamento; 
+
+            ex CASCADE: 
+
+                CONSTRAINT FK_Func_Depto FOREIGN KEY(Cod_Depto) REFERENCES Departamento (Cod_Depto) ON DELETE CASCADE
+
+                -> explicacao:  
+                    temos o nome da constraint, temos aos uma restricao do tipo FK, onde o campo cod_depto da tabela funcionario, refenrecia qual tabela? a tabela departamento onde o Cod_Depto e chave primaria, e temos a opcao ON DELETE... onde a restricao diz que se eu excluir um departamento, todos os funcionarios que estao relacionados a esse departamento serao excluidos tambem;
+
+            ex SET NULL:
+                
+                CONSTRAINT FK_Func_Depto FOREIGN KEY(Cod_Depto) REFERENCES Departamento (Cod_Depto) ON DELETE SET NULL
+
+                -> explicacao:  
+                    temos o nome da constraint, temos aos uma restricao do tipo FK, onde o campo cod_depto da tabela funcionario, refenrecia qual tabela? a tabela departamento onde o Cod_Depto e chave primaria, e temos a opcao ON DELETE... onde a restricao diz que se eu excluir um departamento, todos os funcionarios que estao relacionados a esse departamento terao o campo cod_depto setado como null;
+
+            ex NO ACTION:
+
+                CONSTRAINT FK_Func_Depto FOREIGN KEY(Cod_Depto) REFERENCES Departamento (Cod_Depto) ON DELETE NO ACTION
+
+                -> explicacao:  
+                    temos o nome da constraint, temos aos uma restricao do tipo FK, onde o campo cod_depto da tabela funcionario, refenrecia qual tabela? a tabela departamento onde o Cod_Depto e chave primaria, e temos a opcao ON DELETE... onde a restricao diz que se eu excluir um departamento, nada acontecera, ou seja, nao sera possivel excluir o departamento;
+
+            ex SET DEFAULT:
+
+                CONSTRAINT FK_Func_Depto FOREIGN KEY(Cod_Depto) REFERENCES Departamento (Cod_Depto) ON DELETE SET DEFAULT
+
+                -> explicacao:  
+                    temos o nome da constraint, temos aos uma restricao do tipo FK, onde o campo cod_depto da tabela funcionario, refenrecia qual tabela? a tabela departamento onde o Cod_Depto e chave primaria, e temos a opcao ON DELETE... onde a restricao diz que se eu excluir um departamento, todos os funcionarios que estao relacionados a esse departamento terao o campo cod_depto setado como default;
+        
+            
+
+    /*-------------------------------------------------------------------------------------*/
+
+
+    * APOS SABER DISSO RESOLVEREMOS O PROBLEMA DA AULA PASSADA:
+
+        UPDATE TBL_DIRETORIA
+            SET COD_DIR = 'D004'
+        WHERE COD_DIR = 'DEP01'
+
+        -> Voltamos a tentar resolver o problema, so relembrando na aula passada tentamos fazer um update na tabela, mas encontramos um erro devido as FK estarem entrelacadas, nos restringimos so que faltou uma coisinha que pode nos ajudar, como resolver isso?  
+
+            - voltamos e vemos na tabela diretoria, nos queremos fazer alguma operacao seja ela de update ou simplismente deletar, nos queremos que essa operacao funcione como uma cascata, ou seja, se ela ocorrer na tabela diretoria ela tem que replicar nas demais tabelas que estao relacionadas com diretoria, a coluna que tenha a constraint, se queremos fazer uma operacao em cascata, temos que colocar a constraint; 
+
+
+    -> O que queremos fazer e quando alterarmos o codigo em Diretoria ele refletir nas demais tabelas
+
+            /*DROP TABLE IF EXISTS TBL_DEPARTAMENTO
+                GO
+
+            CREATE TABLE TBL_DEPARTAMENTO(
+                ID_DEPARTAMENTO TINYINT PRIMARY KEY IDENTITY(1,1),
+                COD_DEPARTAMENTO VARCHAR(5) NOT NULL,
+                DEPARTAMENTO VARCHAR(30) NOT NULL UNIQUE CHECK (DEPARTAMENTO <> ''),
+                COD_DIR VARCHAR(5) NOT NULL CHECK (COD_DIR <> ''),
+
+                CONSTRAINT UqCodDepartamento UNIQUE (COD_DEPARTAMENTO),
+                CONSTRAINT ChCodDep CHECK (COD_DEPARTAMENTO <> ''),
+            */
+                CONSTRAINT FkCodDir FOREIGN KEY (COD_DIR) REFERENCES TBL_DIRETORIA(COD_DIR) ON UPDATE CASCADE 
+            )
+
+        -> O que fizemos aqui foi na constraint da chave estrangeira que aponta para a tabela Diretoria foi criar a restricao ON UPDATE CASCADE, ou seja, se eu alterar o codigo da diretoria ele ira replicar nas demais tabelas que estao relacionadas com a diretoria, e isso e uma operacao em cascata, e isso e muito util para manter a integridade referencial, e isso e muito util para manter a integridade referencial;
+
+
+
+
+
+
+
+
+
+
+55. // TABELAS VIRTUAIS E RECURSIVIDADE (CTE COMMON TABLE EXPRESSION) // 
+
+        CTE - Common Table Expression -> Expressao de tabela comum
+
+            -> Ele permite criar uma tabela virtual em tempo de execucao, ele e muito util quando queremos fazer uma analise de dados, e queremos fazer uma consulta mais complexa, ele e muito util para fazer relatorios, e tambem para fazer comparacoes entre os dados;
+
+        * para comecarmos a escrevermos temos que colocarmos
+
+            /*
+                sintaxe: 
+                WITH nome_cte AS (
+                    SELECT coluna1, coluna2, coluna3
+                        FROM tabela
+                    WHERE condicao
+                )
+            */
+
+
+        exemplo: 
+
+            WITH DevDojo AS (
+                SELECT 'DevDojo e o Melhor' AS Col1
+            )
+
+            SELECT * 
+                FROM DevDojo
+
+                    Resultado: 
+                        ---------------------
+                        | Col1              |
+                        ---------------------                      
+                        | DevDojo e o Melhor|
+                        ---------------------
+                        
+
+
+        * se quisermos escrever outras tabelas virtuais em seguida podemos fazer o seguinte:
+
+                WITH DevDojo AS (
+                    SELECT 'DevDojo e o Melhor' AS Col1
+                ),
+
+                CTE2 AS (
+                    SELECT 'Maratona Java' AS Col2
+                )
+
+                SELECT * 
+                    FROM CTE2
+
+
+            * Agora se quisessemos usar o union nas duas tabelas virtuais, aconteceria o que? 
+            
+
+                SELECT * 
+                    FROM CTER2
+                union
+                SELECT * 
+                    FROM DevDojo
+
+                        --> ele executaria normalmente, sem nenhum erro de execucao, nao ha problemas em fazer isso podemos fazer tambem um UNION dentro de um CTE e executar ele;
+
+    
+    /*-------------------------------------------------------------------------------------*/
+
+
+
+
+
+
+
+
+
+56. // TABELAS VIRTUAIS E RECURSIVIDADE (CTE COMMON TABLE EXPRESSION) - PARTE 2// 
+
+    SELECT HRE.BusinessEntityID
+           CONCAT_WS(' ', FirstName, MiddleName, LastName) AS FullName,
+           LoginID,
+           JobTitle,
+           Gender,
+           HireDate,
+           EmailAddress,
+           CONCAT_WS(' ', AddressLine1, StateProvinceID, City) AS [Address],
+
+
+           SUM (LineTotal) AS Total
+
+
+        FROM HumanResources.Employee AS HRE
+            INNER JOIN Person.Person AS PP
+                ON HRE.BusinessEntityID = PP.BusinessEntityID
+            INNER JOIN Person.EmailAddress AS PPA
+                ON PP.BusinessEntityID = PPA.BusinessEntityID
+            INNER JOIN Person.Address AS PA
+                ON PPA.BusinessEntityID = PA.AddressID
+            INNER JOIN Purchasing.PurchaseOrderHeader AS PPOH
+                ON HRE.BusinessEntityID = PPOH.EmployeeID
+            INNER JOIN Purchasing.PurchaseOrderDetail AS PPOD
+                ON PPOH.PurchaseOrderID = PPOD.PurchaseOrderID
+        
+            -> Se colocarmos esse SUM ele ira trazer o total, mas se colocarmos somente dessa forma ele ira reclamar, porque? porque nao colocamos o group by, com isso teriamos que colocar todas as colunas sem excecao de nenhuma no group by, com isso a query iria ficar gigantesca, para isso poderiamos utilizar o CTE so que para que ele me traga o total de vendas do funcionario;
+
+
+
+        vamos para resolver entao:
+
+            WITH TotalVenda AS (
+                SELECT EmployeeID,
+                       SUM(LineTotal) AS Total
+                    Purchasing.PurchaseOrderHeader AS PPOH
+                INNER JOIN Purchasing.PurchaseOrderDetail AS PPOD
+                    ON PPOH.PurchaseOrderID = PPOD.PurchaseOrderID
+                GROUP BY EmployeeID
+            ) 
+
+            -> Como criamos esse CTE, podemos retira as dois ultimos inner joins do select e fazer um join com a tabela TotalVenda;
+
+
+            SELECT HRE.BusinessEntityID
+                CONCAT_WS(' ', FirstName, MiddleName, LastName) AS FullName,
+                LoginID,
+                JobTitle,
+                Gender,
+                HireDate,
+                EmailAddress,
+                CONCAT_WS(' ', AddressLine1, StateProvinceID, City) AS [Address],
+
+                LineTotal           
+
+                FROM HumanResources.Employee AS HRE
+                    INNER JOIN Person.Person AS PP
+                        ON HRE.BusinessEntityID = PP.BusinessEntityID
+                    INNER JOIN Person.EmailAddress AS PPA
+                        ON PP.BusinessEntityID = PPA.BusinessEntityID
+                    INNER JOIN Person.Address AS PA
+                        ON PPA.BusinessEntityID = PA.AddressID
+                    INNER JOIN TotalVenda AS TV
+                        ON HRE.BusinessEntityID = TV.EmployeeID
+
+                        --> Aqui agora vai ficar um codigo muito mais enxuto e muito mais visual de se entender, poderiamos tambem utilizar sem problema o subselect 
+
+
+
+
+
+
+
+
+
+57. // TABELAS VIRTUAIS E RECURSIVIDADE (CTE COMMON TABLE EXPRESSION - PARTE 3)
+
+        -> Recursividade nada mais e que uma chamada a ela mesma, seja um metodo ou funcao, de maneira que voce coloque um ponto de parada; 
+
+            exemplo: 
+
+                WITH CTE_RECURSIVO AS (
+                    SELECT 1 AS COLUNA 
+                )
+
+                SELECT *
+                    FROM CTE_RECURSIVO
+                GO
+
+                --> Criamos o CTE e agora vamos colocar ele de modo que seja recursivo
+
+            
+            WITH CTE_RECURSIVO AS (
+                SELECT 1 AS COLUNA 
+                    UNION ALL 
+                SELECT COLUNA + 1 
+                    FROM CTE_RECURSIVO
+                WHERE COLUNA < 10 -- BREAK POINT
+            )
+
+            SELECT * 
+                FROM CTE_RECURSIVO
+            GO
+
+                -> Pronto criamos um cte que chama dentro dele ele mesmo, colocamos tambem um ponto de parada porque se nao fica algo infinito, caso retiramos o WHERE ele ira dar um erro, dizendo que passou do limite maximo de 100 iteracoes, por padrao o sql server te permite certa de 100 iteracoes, 
+
+            -> So que o sql te permite voce fazer ate 32.767 mil iteracoes, podemos desbloquear isso atraves de uma clausula sendo: 
+
+                WITH CTE_RECURSIVO AS (
+                    SELECT 1 AS COLUNA 
+                        UNION ALL 
+                    SELECT COLUNA + 1 
+                        FROM CTE_RECURSIVO
+                    WHERE COLUNA < 10000 -- BREAK POINT
+                )
+
+                SELECT * 
+                    FROM CTE_RECURSIVO
+
+                    OPTION (MAXRECURSION 10000)
+
+
+                    -> colocando o (maxrecursion 0), ele pode fazer quantas iteracoes forem necessarias, mas cuidado com isso, pois pode travar o seu servidor, entao sempre coloque um ponto de parada, e sempre coloque um maximo de iteracoes, para que nao ocorra um loop infinito, se nao colocarmos o break ele ira travar o servidor;
 
         
+        vamos para outro exemplo: 
+
+
+            WITH CTE_CALENDARIO AS (
+                SELECT '1991-01-01' AS [DATA]
+                    UNION ALL 
+                SELECT DATEADD(DAY, 1, [DATA])
+                    FROM CTE_CALENDARIO 
+                WHERE [DATA] < TRY_CAST(GETDATE() AS DATE)
+            )
+
+            SELECT *
+                FROM CTE_CALENDARIO
+            OPTION (MAXRECURSION 0)
+
+                -> Ele gerou para gente um CTE_CALENDARIO que vai de 1991 ate a data atual, se tirarmos o option ele ira dar erro, pois as iteracoes foram acima de 100, por isso colocamos ele;         
+
+
+
+
+
+
+
+
+
+
+58. // UPDATE E DELETE COM JOIN // 
+
+    -> Para entendermos vamos criar duas tabelas atraves dos select;
+
+        SELECT * INTO PessoaAux
+            FROM Person.Person
+        
+        SELECT * INTO dbo.FuncionarioAux
+            FROM HumanResources.Employee
+
+                --> Importante... apos a criacao de tabela atraves do INTO, ele nao pega nenhuma constraint e nenhuma chave, ele puramente pega a estrutura da tabela e os dados;
+
+
+        * Agora vamos utilizar a tabela: 
+
+            SELECT *
+                FROM PessoaAux
+
+            SELECT *
+                FROM dbo.FuncionarioAux
+
+
+            -> Ai queremos editar a tabela PessoaAux, so que queremos alterar alguma coluna dela temos como exemplo o title: 
+
+                UPDATE PessoaAux
+                    SET title = 'Ativos'
+                WHERE BusinessEntityID IN (SELECT BusinessEntityID FROM dbo.FuncionarioAux)
+
+                    --> O que estamos fazendo e pegar todos os registros ou pessoas dessa tabela que estao em FuncionarioAux e alterar o titulo delas para Ativos, Se fizemos dessa forma em cima ele ira funcionar so que o nome que se da a esse formato e chamado de PADRAO ANSI, ou seja, outros SGBD suportam, e um update puro que rodaria em qualquer outro;
+
+
+            -> Mas como estamos utilizando o dialeto o TSQL o TRANSACTION SQL (t-sql), como fariamos para utilizar o recurso da microsoft, seria assim: 
+
+                UPDATE PessoaAux
+                    SET title = 'Ativos'
+                FROM PessoaAux AS PA INNER JOIN FuncionarioAux AS FA
+                    ON PA.BusinessEntityID = FA.BusinessEntityID
+
+                        --> Isso ira realmente trazer o mesmo resultado que o de cima, so que esse formato fica bem mais bonito quando trabalhamos com sql server;
+
+
+
+    /*-------------------------------------------------------------------------------------*/
+
+        -> Agora como fazemos uma delecao utilizando o DELETE juntamente com o join 
+
+            DELETE PA
+                FROM PessoaAux AS PA INNER JOIN FuncionarioAux AS FA
+            ON PA.BusinessEntityID = FA.BusinessEntityID
+
+                --> se fizermos isso ele ira deletar todas as linhas em pessoa auxiliar que fazem intercessao com FuncionarioAux, ou seja, ele ira deletar todas as pessoas que estao na tabela funcionario;                       
+
+
+
+
+
+
+
+
+
+
+59. // APRESENTACAO DE ATIVIDADE // 
+
+        |-> A diretoria devdojo S.A solicitou um relatorio com as informacoes de Admissoes e    Demissoes por meses, agrupadas por Ano e diretoria. 
+    PT1 |
+        |+------------------------------------------------------+
+        || Tipo | Diretoria | Ano | Jan | Fev | Mar | Abr | ... | 
+        |+------------------------------------------------------+
+
+        Alem disso, a diretoria gostaria de saber o quantitativo de colaboradores ativos por mes, ao menos nos ultimos 2 anos, distribuidos por mes, ao menos nos ultimos 2 anos, distribuidos por mes. Sera muito valido ter a coluna de diretoria agrupada.
+
+        Um ponto extra sera trazer desde o inicio da empresa, ou seja, desde o primeiro ano ate a posicao atual.
+
+
+    // PARTE 1 // 
+
+        WITH BASE AS (
+            SELECT Matricula,
+                   Diretoria,
+                   TRY_CAST(DtAdmissao AS DATE) AS DtAdmissao,
+                   CASE DtDemissao
+                        WHEN '' THEN NULL
+                        ELSE TRY_CAST(DtDemissao AS DATE)
+                    END AS DtDemissao       
+
+                FROM TblFunc
+        ),
+
+        CTE_ADMISSAO AS(
+            SELECT Matricula,
+                   Diretoria,
+                   MONTH(DtAdmissao) AS Mes,
+                   YEAR(DtDemissao) AS Ano
+            FROM BASE 
+        ),
+
+        ADM AS (SELECT 'Admissao' AS Tipo,
+               Diretoria,
+               Ano, 
+
+               [1] AS Jan, 
+               [2] AS Fev, 
+               [3] AS Mar, 
+               [4] AS Abr,
+               [5] AS Mai,
+               [6] AS Jun, 
+               [7] AS Jul, 
+               [8] AS Ago, 
+               [9] AS [Set], 
+               [10] AS [Out], 
+               [11] AS [Nov], 
+               [12] AS [Dez], 
+    
+
+               [1] + [2] + [3] + [4] + [5] + [6] + [7] + [8] + [9] + [10] + [11] + [12] as Total
+               
+            FROM CTE_ADMISSAO
+        PIVOT (
+            COUNT(Matricula) FOR [Mes] IN ([1], [2], [3], [4], [5], [6], [7], [8], [9], [10], [11], [12])
+        ) AS PVT 
+    )
+
+    SELECT * FROM ADM
+        ORDER BY Ano, Diretoria
+
+
+        -> Este código SQL está transformando dados de uma tabela de funcionários (TblFunc) para contar o número de admissões por mês e por diretoria, e depois pivotando esses dados para criar uma tabela que mostra o número de admissões em cada mês e o total anual.
+
+
+
+
+
+
+
+
+
+
+60. // APRESENTACAO DE ATIVIDADE - PARTE 2 //
+
+    /*WITH BASE AS (
+            SELECT Matricula,
+                   Diretoria,
+                   TRY_CAST(DtAdmissao AS DATE) AS DtAdmissao,
+                   CASE DtDemissao
+                        WHEN '' THEN NULL
+                        ELSE TRY_CAST(DtDemissao AS DATE)
+                    END AS DtDemissao       
+
+                FROM TblFunc
+        ),
+
+        CTE_ADMISSAO AS(
+            SELECT Matricula,
+                   Diretoria,
+                   MONTH(DtAdmissao) AS Mes,
+                   YEAR(DtDemissao) AS Ano
+            FROM BASE 
+        ),
+
+        ADM AS (SELECT 'Admissao' AS Tipo,
+               Diretoria,
+               Ano, 
+
+               [1] AS Jan, 
+               [2] AS Fev, 
+               [3] AS Mar, 
+               [4] AS Abr,
+               [5] AS Mai,
+               [6] AS Jun, 
+               [7] AS Jul, 
+               [8] AS Ago, 
+               [9] AS [Set], 
+               [10] AS [Out], 
+               [11] AS [Nov], 
+               [12] AS [Dez], 
+    
+
+               [1] + [2] + [3] + [4] + [5] + [6] + [7] + [8] + [9] + [10] + [11] + [12] as Total
+               
+            FROM CTE_ADMISSAO
+        PIVOT (
+            COUNT(Matricula) FOR [Mes] IN ([1], [2], [3], [4], [5], [6], [7], [8], [9], [10], [11], [12])
+        ) AS PVT 
+    ),*/
+
+    CTE_ADMISSAO AS(
+            SELECT Matricula,
+                   Diretoria,
+                   MONTH(DtDemissao) AS Mes,
+                   YEAR(DtDemissao) AS Ano
+            FROM BASE 
+            WHERE DtDemissao IS NOT NULL
+        ),
+
+    DEM AS (
+
+        SELECT 'Demissao' AS Tipo,
+            Diretoria,
+            Ano
+        FROM CTE_DEMISSAO
+        PIVOT( COUNT(Matricula) FOR Mes IN ([1], [2], [3], [4], [5], [6], [7], [8], [9], [10], [11], [12])
+        ) AS PVT
+    )
+
+    COMBINADO AS (
+        SELECT * FROM ADM
+        UNION ALL
+        SELECT * FROM DEM
+    )
+    
+    SELECT *
+        FROM COMBINADO
+    ORDER BY Ano, Diretoria
+
+    -> Queremos funcionarios que foram demitidos, para fazer isso precisamos de um where que ira trazer os registros de demissao, e depois fazemos um pivot para contar o numero de demissoes por mes e por diretoria;
            
+           -> Depois temos que fazer um union all para unir as duas tabelas, e depois fazer um select para trazer o resultado final;
 
 
 
- 
+    ==> outra query
+
+        SELECT * FROM TblFunc
+            WHERE DtAdmissao <= '20200131'
+                AND (DtDemissao >= '20210101' OR DtDemissao = '')                  
+
+        -> Queremos funcionarios que foram contratados antes de 31/01/2020 e que foram demitidos a partir de 01/01/2021 ou que nao foram demitidos;
 
 
 
 
 
 
+
+
+
+
+61. // APRESENTACAO DE ATIVIDADE - PARTE 3 //
+
+    -> Queremos saber a data que esta ativo, para isso temos que olhar a data de admissao e data de demissao, temos que fazer uma analise logica e juntar para ter uma coluna logica;
+
+
+    WITH BASE AS (
+            SELECT Matricula,
+                   Diretoria,
+                   TRY_CAST(DtAdmissao AS DATE) AS DtAdmissao,
+                   CASE DtDemissao
+                        WHEN '' THEN NULL
+                        ELSE TRY_CAST(DtDemissao AS DATE)
+                    END AS DtDemissao       
+
+                FROM TblFunc
+    ),
+
+    ANOS AS (
+        SELECT
+            YEAR(GETDATE()) - 2 AS AnoAtivo
+            Matricula, 
+            Diretoria, 
+            DtAdmissao,
+            DtDemissao
+        FROM BASE 
+            WHERE YEAR(DtAdmissao) <= (YEAR(GETDATE()) - 2)
+                AND (YEAR(DtDemissao) >= (YEAR(GETDATE()) - 2) OR DtDemissao IS NULL)
+
+            UNION 
+        
+        YEAR(GETDATE()) - 1 AS AnoAtivo
+            Matricula, 
+            Diretoria, 
+            DtAdmissao,
+            DtDemissao
+        FROM BASE 
+            WHERE YEAR(DtAdmissao) <= (YEAR(GETDATE()) - 1)
+                AND (YEAR(DtDemissao) >= (YEAR(GETDATE()) - 1 ) OR DtDemissao IS NULL)
+
+    ),
+
+    SELECT * FROM ANOS
+        WHERE AnoAtivo = 2022
+        
+
+        -> Aqui estamos pegando os funcionarios que foram contratados nos ultimos 2 anos, e que foram demitidos nos ultimos 2 anos, e estamos pegando os funcionarios que foram contratados no ano de 2022, e que foram demitidos no ano de 2022, ou que nao foram demitidos, criamos duas tabelas virtuais logicas onde podemos fazer filtros atraves dela;
+
+            -> Como tratar os meses ao decorrer do tempo, podemos ter um CTE para tratar os meses;
+
+    
+    MESES AS (
+        SELECT AnoAtivo,
+               'Jan' AS Jan,
+               Matricula, 
+               Diretoria, 
+               DtAdmissao,
+               DtDemissao
+        FROM ANOS 
+            WHERE DtAdmissao <= EOMONTH(TRY_CAST( CONCAT(AnoAtivo, '0101') AS DATE))
+                AND ( DtDemissao > EOMONTH(CONCAT(AnoAtivo, '0101') AS DATE) OR DtDemissao IS NULL)
+    )
+
+    SELECT * FROM MESES
+
+
+            -> Aqui estamos pegando os funcionarios que foram contratados nos ultimos 2 anos, e que foram demitidos nos ultimos 2 anos, e estamos pegando os funcionarios que foram contratados no ano de 2022, e que foram demitidos no ano de 2022, ou que nao foram demitidos, criamos duas tabelas virtuais logicas onde podemos fazer filtros atraves dela;
+
+
+
+
+
+
+
+
+
+
+
+62. // FUNCOES LOGICAS - IIF E CHOOSE //
+
+    -> Primeira funcao, suponhamos que queremos comparar um valor com outro valor, mediante essa comparacao me retorna se for verdadeiro ou falso;
+
+
+        /*
+            SELECT IIF(expressao_logica, valor_se_verdadeiro, valor_se_falso)
+        */
+
+            -> Ela funciona com tres argumentos sendo: 
+
+                -> O primeiro argumento e a condicao que queremos testar, se for verdadeiro ele retorna o segundo argumento, se for falso ele retorna o terceiro argumento;
+
+                -> Exemplo: 
+
+                    SELECT IIF(1 = 1, 'Verdadeiro', 'Falso')
+
+                        -> Ele ira retornar verdadeiro, pois a condicao e verdadeira;
+
+                    SELECT IIF(1 = 2, 'Verdadeiro', 'Falso')
+
+                        -> Ele ira retornar falso, pois a condicao e falsa;
+
+
+    exmplo utilizando AdventureWorks2022: 
+
+
+        SELECT IIF( OrderQty >= 3, 'Muito bom', 'Vamos Melhorar') AS Status 
+            *
+        FROM Sales.SalesOrderDetail
+
+            -> Ele ira trazer o status de cada pedido, se o pedido for maior ou igual a 3 ele ira trazer muito bom, se nao ele ira trazer vamos melhorar;
             
 
 
 
 
+    OUTRO METODO LOGICO: 
 
+        # CHOOSE(): ele permite algo semelhante ao que o case faz, com a diferenca que o choose o primeiro argumento precisamos passar um indice para ele;
 
+            - Exemplo: Suponhamos que passemos uma coluna, agora iremos passar apenas um valor e depois iremos pegar algumas verificacoes, no caso se fosse uma coluna que teria numeral de 1 - 10 e ele simplesmente em determinada linha 7 o numeral 3, valor e depois iremos passar a expressao;
 
+        /*
+            SINTAXE: 
+                CHOOSE(indice, valor1, valor2, valor3, valor4, valor5, valor6, valor7, valor8, valor9, valor10)
+        */
 
+        Exemplo:
 
+            SELECT IIF( OrderQty >= 3, 'Muito bom', 'Vamos Melhorar') AS Status,
+                   CHOOSE(OrderQty, 'Indice 1', 'Indice 2', 'Indice 3', 'Indice 4', 'Indice 5', 'Indice 6', 'Indice 7', 'Indice 8') AS Indice
+                *
+            FROM Sales.SalesOrderDetail
 
+                -> Ira trazer o indice de cada pedido, se for 1 ele ira trazer indice 1, se for 2 ele ira trazer indice 2, e assim por diante; 
 
 
+        Exemplo 2: 
 
+            SELECT CHOOSE( MONTH(ModifiedDate), 'Verao', 'Verao', 'Outono', 'Outono', 'Outono', 'Inverno', 'Inverno', 'Inverno', 'Primavera', 'Primavera', 'Primavera', 'Verao') AS Estacao,
+                *
+            FROM Sales.SalesOrderDetai
 
 
 
@@ -3775,55 +4664,1224 @@
 
 
 
+63. // FUNCOES MATEMATICAS (ABS, CEILING,EXP, FLOOR, LOG, LOG10, PI, POWER, RAND, ROUND, SIG)
 
+     
+    # ABS: retorna o valor absoluto de um numero, ou seja, o valor sem sinal;
 
+        -> Exemplo: 
 
+            SELECT 
+                ABS(-10)
+                    -> Ele ira retornar 10, pois ele ira retirar o sinal do numero;
 
 
 
+    # CEILING: retorna o menor numero inteiro que e maior ou igual ao numero especificado;
 
+        -> Exemplo: 
 
+            SELECT 
+                CEILING(10.1)
+                    -> Ele ira retornar 11, pois ele ira arredondar para cima;
 
 
+    
+    # EXP: retorna o valor de e elevado a potencia de um numero especificado;
 
+        -> Exemplo: 
 
+            SELECT 
+                EXP(1)
+                    -> Ele ira retornar 2.718281828459045, pois ele ira elevar o numero de e a potencia de 1;
 
+    
 
+    # FLOOR: retorna o maior numero inteiro que e menor ou igual ao numero especificado;
 
+        -> Exemplo: 
 
+            SELECT 
+                FLOOR(10.9)
+                    -> Ele ira retornar 10, pois ele ira arredondar para baixo;
 
+    
 
+    # LOG: retorna o logaritmo natural de um numero especificado;
 
+        -> Exemplo: 
 
+            SELECT 
+                LOG(10)
+                    -> Ele ira retornar 2.302585092994046, pois ele ira retornar o logaritmo natural de 10;
+    
 
 
+    # LOG10: retorna o logaritmo de base 10 de um numero especificado;
+        
+        -> Exemplo: 
 
+            SELECT 
+                LOG10(10)
+                    -> Ele ira retornar 1, pois ele ira retornar o logaritmo de base 10 de 10;
 
 
 
+    # PI: retorna o valor de PI;
 
+        -> Exemplo: 
 
+            SELECT 
+                PI()
+                    -> Ele ira retornar 3.141592653589793, pois ele ira retornar o valor de PI;
+    
 
 
+    # POWER: retorna o valor de um numero elevado a potencia de outro numero especificado;
 
+        -> Exemplo: 
+            --Sintaxe: POWER(numero, potencia)
 
+            SELECT 
+                POWER(2, 3)
+                    -> Ele ira retornar 8, pois ele ira elevar o numero 2 a potencia de 3;
 
 
 
+    # RAND: retorna um numero de ponto flutuante aleatorio entre 0 e 1;
 
+        -> Exemplo: 
 
+            SELECT 
+                RAND()
+                    -> Ele ira retornar um numero aleatorio entre 0 e 1;
 
 
 
+    # ROUND: retorna um numero arredondado para um numero especificado de casas decimais;
 
+        -> Exemplo: 
+                --Sintaxe: ROUND(numero, casas_decimais) 
 
+            SELECT 
+                ROUND(10.123456, 2)
+                    -> Ele ira retornar 10.12, pois ele ira arredondar para 2 casas decimais;
+    
 
 
+    # SIGN: retorna o sinal de um numero especificado;
 
+        -> Exemplo: 
 
+            SELECT 
+                SIGN(-10)
+                    -> Ele ira retornar -1, pois ele ira retornar o sinal do numero;
 
+    
 
+    # SRQT: retorna a raiz quadrada de um numero especificado;
 
+        -> Exemplo: 
+
+            SELECT 
+                SQRT(9)
+                    -> Ele ira retornar 3, pois ele ira retornar a raiz quadrada de 9;
+    
+
+
+    # SQUARE: retorna o quadrado de um numero especificado;
+
+        -> Exemplo: 
+
+            SELECT 
+                SQUARE(3)
+                    -> Ele ira retornar 9, pois ele ira retornar o quadrado de 3;
+
+
+
+
+
+
+
+
+
+
+64. // WINDOW FUNCTION - FUNCOES DE CLASSIFICACAO (ROW_NUMBER) // 
+
+
+    -> A window function se categoriza por mais tres tipos de funcoes, temos as funcoes de classificacao, agregacao e analiticas;
+
+        # FUNCAO DE CLASSIFICAO: 
+            --ROW_NUMBER() / RANK() / DENSE_RANK() / NTILE() / OVER()
+
+            * ROW_NUMBER: 
+                -> A funcao row_number() e uma funcao de classificacao, ela atribui um numero sequencial para cada linha de um conjunto de resultados que e retornado por uma consulta, ela e muito util para fazer paginacao, ou seja, se voce quer pegar um conjunto de dados e quer paginar, voce pode utilizar a funcao row_number() para fazer isso, ela e muito util para fazer ordenacao de dados, e tambem
+
+        
+
+        -> EXEMPLO: 
+            - Vamos ordenar essa query abaixo:  
+
+                SELECT * 
+                    FROM Person.Person
+                    ORDER BY LastName, FirstName
+
+                        - temos a possibilidade de utilizar uma funcao para ordenar adicionando coisas a +, e chamada de row_number(), todas elas requerem uma clausula diferente chamada over, a clausula over ira permitir trabalhar com janela / conjunto de dados, dentro desse over colocaremos o order by;
+                ...
+
+                SELECT ROW_NUMBER() OVER(ORDER BY FirstName, MiddleName, LastName) AS ORD,
+                       *
+                    FROM Person.Person
+
+                        -> Ele fez uma ordenacao, o row_number ele vai criar uma coluna em tempo de execucao que ira ter um valor temporario que ira ser a posicao de cada linha, ou seja, ele ira numerar cada linha;
+
+
+
+
+        PARTITION BY: 
+            -> Dentro da clausula over e permitido utilizar possibilidade de particionar os dados, ou seja, e como se fosse particionar valores e mediante a eles terem uma determinada classificacao, no momento em que utilizamos esse comando de fato iniciamos a criacao de uma janela de dados no meu grid de resultados, notamos que na primeira linha da coluna ORD, poderemos ver que ele ira dar o resultado da primeira linha como 1, sao valores que nao se repetem, e a partir do momento que ele encontra um valor que se repete ele ira aparecer como o valor 2 e assim por diante; 
+
+                SELECT ROW_NUMBER() OVER (PARTITION BY FirstName, MiddleName, LastName ORDER BY FirstName, MiddleName, LastName) AS ORD,
+                       *
+                    FROM Person.Person
+
+                        -> Vemos que para esse partionamento poderemos ver resultados como: as duas classificacoes sao as mesmas, ou seja, dentro desse bloco de resultados ele dividiu cada ocorrencia em um outra janela de dados; 
+
+
+            exemplo de resutados: 
+                +-----+-----------+------------+----------+
+                | ORD | FirstName | MiddleName | LastName |
+                |-----|-----------|------------|----------|
+                | 1   | Aron      | NULL       | A        |
+                | 2   | Aron      | NULL       | A        |
+                | 3   | Aron      | NULL       | A        |
+                | 1   | Bill      | NULL       | Bay      |
+                | 2   | Bill      | NULL       | Bay      |
+                | 1   | C         | NULL       | C        |
+                | 1   | D         | NULL       | D        |
+                +-----+-----------+------------+----------+
+
+
+
+
+
+
+
+
+
+
+65. // WINDOW FUNCTION - FUNCOES DE CLASSIFICACAO ( RANK, DENSE_RANK ) // 
+
+    # RANK: 
+        -> A funcao rank() e row_number() sao muito similares, a diferenca e que a funcao rank() ira atribuir um numero sequencial para cada linha de um conjunto de resultados que e retornado por uma consulta, ela e muito util para fazer paginacao, ou seja, se voce quer pegar um conjunto de dados e quer paginar, voce pode utilizar a funcao rank() para fazer isso, ela e muito util para fazer ordenacao de dados, e tambem;
+
+        -> Exemplo: 
+
+            WITH CTE_ROW_NUMBER AS (
+                
+                SELECT 
+                    RANK() OVER( ORDER BY FirstName, MiddleName, LastName ) AS ORD,
+                    *
+                FROM Person.Person
+            ),
+
+
+            exemplo de tabela: 
+
+                +-----+-----------+------------+----------+
+                | ORD | FirstName | MiddleName | LastName |
+                |-----|-----------|------------|----------|
+                | 1   | Aron      | NULL       | A        |
+                | 2   | Aron      | NULL       | B        |
+                | 3   | Aron      | NULL       | C        |
+                | 4   | Bill      | NULL       | Bay      |
+                | 4   | Bill      | NULL       | Bay      |
+                | 6   | C.        | NULL       | Clay     |
+                | 6   | C.        | NULL       | Clay     |
+                +-----+-----------+------------+----------+
+
+                    -> Com isso afirmamos que os registros que forem iguais ele ira empatar os numeros, ou seja, ele ira dar o mesmo numero para os registros que forem iguais, e a partir do momento que ele encontrar um registro diferente ele ira dar um numero diferente;
+    
+
+    # DENSE_RANK:
+        -> A funcao dense_rank() e uma funcao de classificacao, ela atribui um numero sequencial para cada linha de um conjunto de resultados que e retornado por uma consulta, ela e muito util para fazer paginacao, ou seja, se voce quer pegar um conjunto de dados e quer paginar, voce pode utilizar a funcao dense_rank() para fazer isso, ela e muito util para fazer ordenacao de dados, e tambem;
+
+        -> Exemplo: 
+
+            WITH CTE_ROW_NUMBER AS (
+                
+                SELECT 
+                    DENSE_RANK() OVER( ORDER BY FirstName, MiddleName, LastName ) AS ORD,
+                    *
+                FROM Person.Person
+            ),
+
+            exemplo de tabela: 
+                
+                +-----+-----------+------------+----------+
+                | ORD | FirstName | MiddleName | LastName |
+                |-----|-----------|------------|----------|
+                | 1   | Aron      | NULL       | A        |
+                | 2   | Aron      | NULL       | B        |
+                | 3   | Aron      | NULL       | C        |
+                | 4   | Bill      | NULL       | Bay      |
+                | 4   | Bill      | NULL       | Bay      |
+                | 5   | C.        | NULL       | Clay     |
+                | 5   | C.        | NULL       | Clay     |
+                +-----+-----------+------------+----------+
+
+
+                      !! Diferença entre rank e dense_rank: 
+
+                        -> A diferenca entre rank e dense_rank e que o rank ele ira pular numeros, ou seja, se ele encontrar um registro igual ele ira pular um numero, ja o dense_rank ele ira numerar sequencialmente, ou seja, ele ira numerar sequencialmente os registros que forem iguais, e a partir do momento que ele encontrar um registro diferente ele ira dar um numero diferente; 
+
+
+
+
+
+
+
+
+
+
+66. // WINDOW FUNCTION - FUNCOES DE CLASSIFICACAO ( NTILE ) E DELETANDO //
+
+    # NTILE: 
+        -> A funcao ntile() e uma funcao de classificacao, ela atribui um numero sequencial para cada linha de um conjunto de resultados que e retornado por uma consulta, ela e muito util para fazer paginacao, ou seja, se voce quer pegar um conjunto de dados e quer paginar, voce pode utilizar a funcao ntile() para fazer isso, ela e muito util para fazer ordenacao de dados, e tambem;
+
+            /* SINTAXE: 
+                NTILE(QUANTIDADE_DE_JANELAS_A_CRIAR) 
+            */
+
+        -> Exemplo: 
+
+            SELECT NTILE() OVER(    PARTITION BY SalesOrderID 
+                                    ORDER BY SalesOrderID DESC  ) AS NTILE,
+                   *
+                FROM Sales.SalesOrderDetail 
+
+
+                -> Ele ira criar uma janela de dados, e ira numerar essas janelas de dados, e a partir do momento que ele encontrar um registro diferente ele ira dar um numero diferente, e a partir do momento que ele encontrar um registro diferente ele ira dar um numero diferente, e a partir do momento que ele encontrar um registro diferente ele ira dar um numero diferente, e a partir do momento que ele encontrar um registro diferente ele ira dar um numero diferente, e a partir do momento que ele encontrar um registro diferente ele ira dar um numero diferente, e a partir do momento que ele encontrar um registro diferente ele ira dar um numero diferente, e a partir do momento que ele encontrar um registro diferente ele ira dar um numero diferente, e a partir do momento que ele encontrar um registro diferente ele ira dar um numero diferente, e a partir do momento que ele encontrar um registro diferente ele ira dar um numero diferente, e a partir do momento que ele encontrar um registro diferente ele ira dar um numero diferente, e a partir do momento que ele encontrar um registro diferente ele ira dar um numero diferente, e a partir do momento que ele encontrar um registro diferente ele ira dar um numero diferente;
+
+
+
+    !! O que podemos fazer com essas funcoes de classificacao? 
+        -> Uma das possibilidades e voce pegar registros duplicados e deletalos para isso podemos fazer o seguinte: 
+
+        - Para esse exemplos queremos que o nome completo seja distinto: 
+
+            SELECT * INTO AUX_PESSOA_MS
+                FROM Person.Person
+            GO
+
+            WITH CTE_DELECAO AS (
+                SELECT  
+                    ROW_NUMBER() OVER( PARTITION BY FirstName, MiddleName, LastName ORDER BY FirstName, MiddleName, LastName ) AS [FullName],
+                    * 
+                    FROM AUX_PESSOA_MS
+            )
+
+            DELETE FROM CTE_DELECAO 
+                WHERE FullName > 1
+
+            SELECT * 
+                FROM CTE_DELECAO
+                    WHERE [FullName] > 1
+
+                    -> O que fizemos aqui foi um cte onde ele faz o row_number e ele ira numerar os registros que forem iguais, e a partir dai colocamos um select para filtrar os registros que estao duplicados, podendo visualizar os registros, apos esse passoa criamoso   d antes do select a clausula DELETE FROM CTE_DELECAO WHERE FullName > 1, ou seja, ele ira deletar os registros que forem duplicados, e apos isso fazemos um select para visualizar os registros que foram deletados;
+
+
+
+
+
+
+
+
+
+
+67. // WINDOW FUNCTION - FUNCOES DE AGREGACAO E TRAZENDO O ACUMULADO // 
+
+    -> Vamo ver sobre funcoes de agregacao, e tambem como trazer o acumulado de uma coluna;
+
+        # FUNCOES DE AGREGACAO: 
+            --SUM() / AVG() / MIN() / MAX() / COUNT() / STDEV() / VAR
+
+        
+            SELECT SUM(LineTotal) /*OVER()*/AS Total
+                FROM Sales.SalesOrderDetail
+
+                    -> Se rodarmos somente isso ele ira dar erro e ira dizer que precisamos utilizar a clausula group by, dizemos anteriormente que isso esta associado a funcoes de janela isso possibilita utilizar o OVER, diferentemente das funcoes de classificacao que e obrigatorio, ai e opcional, a partir do momento que voce usar ela, e nao passar nada dentro dos parenteses ele ira trazer todo o calculo em uma unica coluna repetindo em todas as linhas;
+
+            EXEMPLO: 
+
+                -> Vamos supor trazer o valor acumulado de certo pedido por Id, falamos em agrupar valores e trazer conjunto de dados, para trazer o acumulado dos pedidos de 'certo ID' dentro do OVER colocariamos o ORDER BY;
+
+                SELECT SalesOrderID,
+                       SalesOrderDetailID,
+                       OrderQty,
+                       ProductID,
+                       UnitPrice,
+                       LineTotal,
+                       TRY_CAST(ModifiedData AS DATE) AS ModifiedData,
+                       SUM(LineTotal) OVER(ORDER BY SalesOrderID) AS LineTotal
+                    FROM Sales.SalesOrderDetail
+
+                        -> Nesse codigo o que esta acontecendo e que para certo ID de pedido ele ira trazer o valor acumulado dele, so que quando passar para outro ID, ele ira pegar essa soma feita e ira somar com a outra soma do proximo ID, e assim por diante, ou seja, ele ira trazer o acumulado de cada pedido, ao final de todas as linhas podemso ver o total;
+
+
+
+
+
+
+
+
+
+
+68. // WINDOW FUNCTION - FUNCOES ANALITICAS (LAG, LEAD) // 
+
+    # LAG: 
+        -> A funcao lag() e uma funcao analitica que permite acessar uma linha anterior a linha atual, ela e muito util para fazer comparacoes entre linhas, ou seja, se voce quer pegar um valor de uma linha anterior voce pode utilizar a funcao lag(), ela e muito util para fazer comparacoes entre linhas, e tambem;
+
+        /* SINTAXE: 
+            LAG(valor, Quantidade_de_registros_que_deseja_mover, default)
+
+            default: se nao passarmos nada ele ira tomar como premissa o valor nulL;
+        */
+
+    # LEAD: 
+        -> A funcao lead() e uma funcao analitica que permite acessar uma linha posterior a linha atual, ela e muito util para fazer comparacoes entre linhas, ou seja, se voce quer pegar um valor de uma linha posterior voce pode utilizar a funcao lead(), ela e muito util para fazer comparacoes entre linhas, e tambem;
+     
+        /* SINTAXE: 
+            LEAD(valor, Quantidade_de_registros_que_deseja_mover, default)
+
+            default: se nao passarmos nada ele ira tomar como premissa o valor nulL;
+        */
+
+    -> Temos o seguinte script abaixo, vamos ver as funcoes analiticas:
+    
+    WITH CTE_TESTE AS (
+
+        SELECT Linha, 
+               LAG(Posicao, 2) OVER(ORDER BY Linha) AS [LAG],
+                --Ele vai retornar registros para traz, ou seja, ele vai retornar o valor da linha anterior, e se nao tiver ele ira retornar nulo;
+
+                LEAD(Posicao, 2, 'Lead') AS [LEAD]
+                --Ele vai retornar registros para frente, ou seja, ele vai retornar o valor da linha posterior, e se nao tiver ele ira retornar o valor que passamos como default;
+
+               /*
+               Posicao,
+               TRY_CAST(Data AS DATE) AS [Data],
+
+            FROM (VALUES (1, 'Posicao 1' , '2020-09-12'),
+                         (1, 'Posicao 2' , '2020-09-12'),
+                         (1, 'Posicao 3' , '2020-10-04'),
+                         (1, 'Posicao 4' , '2021-10-04'),
+                         (1, 'Posicao 5' , '2021-10-06'),
+                         (1, 'Posicao 6' , '2022-12-07'),
+                         (1, 'Posicao 7' , '2022-12-09'),
+                         (1, 'Posicao 8' , '2022-12-09'),
+                         (1, 'Posicao 9' , '2022-12-09'),
+                         (1, 'Posicao 10' , '2020-10-04'),
+                         (1, 'Posicao 11' , '2022-12-09'),
+                         (1, 'Posicao 12' , '2021-10-06')    
+
+        ) AS Tbl ( [Linha], [Posicao], [Data])
+    )
+
+    SELECT Linha,
+           Posicao,
+           [Data]
+        FROM CTE_TESTE
+    */
+
+
+
+
+
+
+
+
+
+
+69. // WINDOW FUNCTION - FUNCOES ANALITICAS ( FIRST_VALUE, LAST_VALUE ) // 
+
+    # FIRST_VALUE(): 
+        -> A funcao first_value() e uma funcao analitica que permite acessar o primeiro valor de um conjunto de resultados que e retornado por uma consulta;
+
+        /* SINTAXE: 
+            FIRST_VALUE(valor) OVER(ORDER BY coluna)
+        */
+
+        EXEMPLO: 
+
+            SELECT 
+                FIRST_VALUE(Posicao) OVER( PARTITION BY [Data] 
+                                           ORDER BY Linha) AS [FirstValue]
+                    
+                    -> Ele ira trazer o primeiro valor de cada particao, ou seja, ele ira trazer o primeiro valor de cada particao, e a partir do momento que ele encontrar um valor diferente ele ira trazer o primeiro valor desse novo valor; 
+
+
+    # LAST_VALUE():
+        -> A funcao last_value() e uma funcao analitica que permite acessar o ultimo valor de um conjunto de resultados que e retornado por uma consulta;
+
+        /* SINTAXE: 
+            LAST_VALUE(valor) OVER(ORDER BY coluna)
+        */
+
+        EXEMPLO: 
+
+            SELECT 
+                LAST_VALUE(Posicao) OVER( PARTITION BY [Data] 
+                                           ORDER BY Linha) AS [LastValue]
+
+                    -> Ele ira trazer o ultimo valor de cada particao, ou seja, ele ira trazer o ultimo valor de cada particao, e a partir do momento que ele encontrar um valor diferente ele ira trazer o ultimo valor desse novo valor;
+
+
+    ... 
+        EXEMPLO MAIS PROFUNDO: 
+
+            WITH CTE_SALES AS (
+
+                SELECT 
+                    SUM(LineTotal) AS LineTotal,
+                    DATEPART(YEAR, ModifiedDate) AS Ano,
+                    MONTH(ModifiedDate) AS Mes
+                FROM Sales.SalesOrderDetail
+                    GROUP BY 
+                        DATEPART(YEAR, ModifiedDate), 
+                        MONTH(ModifiedDate)
+            )
+
+            SELECT LineTotal,
+                   Ano,
+                   Mes,
+                   LAG(LineTotal, 1, LineTotal) OVER( PARTITION BY Ano ORDER BY Ano, Mes) AS [TotalAnterior],
+            FROM CTE_SALES
+                ORDER BY Ano,
+                         Mes
+
+                -> Ele esta trazendo os valores totais pelo ano e mes, para que melhore nossa leitura, colocamos o lag() porque queremos fazer uma comparacao do total, vamos supor que seja o total das vendas, queremos pegar o total das vendas dos meses anteriores e dos meses seguintes; 
+
+
+
+
+
+
+
+
+
+
+70. // MEDIA, MEDIANA E MODA - SQL SERVER //
+
+    --MEDIA
+
+        SELECT
+            AVG(Salario) OVER() AS Media 
+           FROM (Values (1100)
+                        (1200)
+                        (1300)
+                        (1400)
+                        (1500)
+                        (1600)
+                        (1700)
+                        (1800)
+                        (1900)
+
+                ) AS TblApoio (Salario)
+
+        -> Ele ira trazer a media dos salarios, ou seja, ele ira trazer a media dos salarios, e a partir do momento que ele encontrar um valor diferente ele ira trazer a media desse novo valor;
+
+
+    
+    --MEDIANA 
+
+        /* SINTAXE: 
+            PERCENTILE_DISC(0.5) WITHIN GROUP(ORDER BY coluna) OVER()
+
+            WITHIN GROUP: ME ORDENA PASSANDO UM GRUPO... 
+
+                - Ou seja, queremos pegar certo grupo de ordenacoes e dividir ele em 50% para cima e 50% para baixo e trazer o que queremos que e a mediana;
+        */
+
+        SELECT 
+            Pessoa,
+            Altura,
+            PERCENTILE_DISC(0.5) WITHIN GROUP(ORDER BY Altura) OVER() AS Mediana
+
+        FROM ( VALUES ('A', 1.79),
+                      ('B', 1.72),
+                      ('C', 1.63),
+                      ('D', 1.82),
+                      ('E', 1.65),
+                      ('F', 1.75),
+                      ('G', 1.80) 
+             ) AS TblApoio (Pessoa, Altura)
+        GO
+
+
+
+    --MODA
+
+        -> Moda e o resultado que mais se aparece, ou seja, o valor que mais se repete;  
+
+        WITH CTE_MODA AS (
+            SELECT FirstName,
+                   COUNT(*) AS contagem
+                FROM Peson.Person
+                    GROUP BY FirstName
+        )   
+
+        SELECT * 
+            FROM CTE_MODA
+                WHERE contagem = (SELECT MAX(contagem) FROM CTE_MODA)
+            ORDER BY Contagem DESC
+
+                -> Estamos fazendo um CTE que realiza a contagem total de nomes, e apos isso estamos fazendo um select que ira trazer o nome que mais se repete, ou seja, o nome que mais se repete, e a partir do momento que ele encontrar um valor diferente ele ira trazer o nome que mais se repete desse novo valor;
+
+
+
+
+
+
+
+
+
+
+71. // SQL SERVER - SUBTOTAL E TOTAL NO SQL SERVER ( ROLLUP, CUBE E GROUPING SETS ) //
+
+    -> Vamos aprender a calcular subtotal e total no sql-server, o que queremos fazer e o calculo das admissoes pelo mes /trimeste e ano, como faremos isso: 
+
+    # ROLLUP:
+        -> O rollup e uma clausula que permite criar subtotais e totais em uma unica consulta, ou seja, ele ira trazer subtotais e totais em uma unica consulta, e tambem;
+
+        SELECT
+            YEAR(DtAdmissao) AS Ano,
+            DATEPART(QUARTER, DtAdmissao) AS Trimestre,
+            MONTH(DtAdmissao) AS Mes,
+            COUNT(*) AS Contagem
+        FROM TblFunc
+            GROUP BY 
+                ROLLUP (
+                YEAR(DtAdmissao),
+                DATEPART(QUARTER, DtAdmissao),
+                MONTH(DtAdmissao)
+                )
+
+                -> Ele ira trazer o ano, trimestre, mes e a contagem de admissao, e a partir do momento que ele encontrar um valor diferente ele ira trazer o subtotal desse novo valor, ele ira trazer de forma hierarquica, ou seja, ele ira trazer o total do ano, o total do trimestre e o total do mes;
+
+                    - o null como resultado significa que e o total, ou seja, ele ira trazer o total do ano, o total do trimestre e o total do mes;
+
+        --QUARTER: 
+            -> Ele ira trazer o trimestre, ou seja, ele ira trazer o trimestre, e a partir do momento que ele encontrar um valor diferente ele ira trazer o trimestre desse novo valor;
+
+
+
+    # CUBE:
+        -> O cube e uma clausula que permite criar subtotais e totais em uma unica consulta, ou seja, ele ira trazer subtotais e totais em uma unica consulta, e tambem ele ira fazer todas as combinacoes possiveis que voce tem na sua query, ou seja, ele ira fazer todas as combinacoes possiveis que voce tem na sua query, e tambem;
+
+        SELECT
+            YEAR(DtAdmissao) AS Ano,
+            DATEPART(QUARTER, DtAdmissao) AS Trimestre,
+            MONTH(DtAdmissao) AS Mes,
+            COUNT(*) AS Contagem
+        FROM TblFunc
+            GROUP BY 
+                CUBE (
+                YEAR(DtAdmissao),
+                DATEPART(QUARTER, DtAdmissao),
+                MONTH(DtAdmissao)
+                )
+
+                -> Ele esta fazendo o quantitativo de todos os ano e trimestres e meses, ou seja, ele ira trazer o total de todos os anos, trimestres e meses, e a partir do momento que ele encontrar um valor diferente ele ira trazer o subtotal desse novo valor, ele ira trazer de forma hierarquica, ou seja, ele ira trazer o total do ano, o total do trimestre e o total do mes;
+
+                    - o null como resultado significa que e o total, ou seja, ele ira trazer o total do ano, o total do trimestre e o total do mes; 
+
+
+
+    # GROUPING SETS:
+        -> O grouping sets e uma clausula que permite criar subtotais e totais em uma unica consulta, ou seja, ele ira trazer subtotais e totais em uma unica consulta, e tambem ele ira fazer todas as combinacoes possiveis que voce tem na sua query, ou seja, ele ira fazer todas as combinacoes possiveis que voce tem na sua query, e tambem;
+
+        SELECT
+            YEAR(DtAdmissao) AS Ano,
+            DATEPART(QUARTER, DtAdmissao) AS Trimestre,
+            MONTH(DtAdmissao) AS Mes,
+            COUNT(*) AS Contagem
+        FROM TblFunc
+            GROUP BY 
+                GROUPING SETS (
+                (YEAR(DtAdmissao)),
+                (DATEPART(QUARTER, DtAdmissao)),
+                (MONTH(DtAdmissao))
+                )
+
+                -> Ele trouxe os totais de cada um dos anos, trimestres e meses, ou seja, ele ira trazer o total de cada um dos anos, trimestres e meses;
+
+                    - o null como resultado significa que e o total, ou seja, ele ira trazer o total do ano, o total do trimestre e o total do mes;
+
+
+
+
+
+
+
+
+
+
+72. // SQL SERVER - TABELAS TEMPORARIAS X TABELAS VIRTUAIS // 
+
+    WITH CTE_HRE AS (
+        SELECT Ano, 
+               [1] Jan,
+               [2] Fev,
+               [3] Mar,
+               [4] Abr,
+               [5] Mai,
+               [6] Jun,
+               [7] Jul,
+               [8] Ago,
+               [9] [Set],
+               [10] [Out],
+               [11] Nov,
+               [12] Dez,
+                [1] + [2] + [3] + [4] + [5] + [6] + [7] + [8] + [9] + [10] + [11] + [12] AS Total
+            
+        FROM (
+            SELECT BusinessEntityID,
+                   YEAR(HireDate) AS Ano,
+                   MONTH(HireDate) AS Mes,
+            FROM HumanResources.Employee
+        ) AS TBL
+        PIVOT ( COUNT (BusinessEntityID) 
+            
+            FOR Mes IN ([1], [2], [3], [4], [5], [6], [7], [8], [9], [10], [11], [12])
+        ) AS PVT
+               
+    )
+
+    SELECT *
+        FROM CTE_HRE
+        
+        -> Vamos recaptular o conceito de CTE, o CTE que temos ai ele existe apenas em tempo de execucao, isso significa que se tentarmos executar o select abaixo somente ele ira dar erro por nao existe nenhum objeto com esse nome CTE_HRE, queremos poder aproveitar essa tabela em outro ponto, queremos em cima desta tabela fazer outras coisas, e e dai onde entra muitas vezes a utilizacao de uma tabela temporaria;
+    
+
+    --TABELA TEMPORARIA:
+
+    SELECT * INTO #TblMeses
+        FROM CTE_HRE
+
+    SELECT *
+        FROM #TblMeses
+
+        -> A tabela temporaria foi criada atraves de um cte que foi criado, e apos isso foi feito um select para trazer os resultados da tabela temporaria, ou seja, a tabela temporaria foi criada e apos isso foi feito um select para trazer os resultados da tabela temporaria; 
+
+
+
+
+
+
+
+
+
+
+73. // SQL SERVER - MERGE // 
+
+    --MERGE:
+        -> O merge e uma instrucao que permite voce fazer operacoes de insert, update e delete em uma unica instrucao;
+
+
+    -> Para melhor entendimento iremos fazer a criacao de tabelas;
+
+    /* DROP IF EXISTS #Produto
+        GO
+    
+
+    CREATE TABLE #Produto (
+        IdProduto INT PRIMARY KEY, 
+        NomeProduto VARCHAR(10),
+        Valor SMALLMONEY
+    ) 
+    GO
+
+    INSERT INTO #Produto
+        VALUES (1, 'Whey Protein', 110.00),
+               (2, 'Creatina', 120.00),
+               (3, 'Termogenico', 60.00),
+               (4, 'Multivitaminico', 45.00)
+    GO
+
+    DROP IF EXISTS #Produto2
+        GO
+    
+    INSERT INTO #Produto2
+        VALUES (1, 'Whey Protein', 110.00),
+               (2, 'Creatina', 120.00),
+               (3, 'Termogenico', 60.00),
+               (4, 'Albumina', 80.00),
+               (5, 'Proteina da Soja', 75.00)
+
+
+    SELECT * FROM #Produto 
+        GO
+    
+
+    SELECT * FROM #Produto2
+        GO
+    */
+
+
+    # MERGE 
+
+        exemplo: 
+
+            MERGE #Produto AS Alvo 
+            USING #Produto2 AS Origem --SUBQUERY / CTE
+                ON Alvo.IDProduto = Origem.IDProduto
+                WHEN MATCHED THEN
+                    UPDATE SET Alvo.NomeProduto = Origem.Produto,
+                            Alvo.Valor = Origem.Valor
+                
+                WHEN NOT MATCHED BY TARGET 
+                    THEN INSERT (IDProduto, NomeProduto, Valor)
+                        VALUES (Origem.IdProduto, Origem.NomeProduto, Origem.Valor)
+                
+                WHEN NOT MATCHED BY SOURCE 
+                    THEN DELETE 
+            
+            OUTPUT deleted.*, $action, iserted.*; 
+
+
+        
+        -> Primeiro colocamos a clausula merge e depois logo de cara colocamos a tabela alvo onde queremos mirar e atualizar, e apos isso colocamos a clausula using e a tabela origem, ou seja, a tabela que queremos utilizar para atualizar a tabela alvo, no using poderiamos fazer a utilizacao do subquery ou de um cte;
+
+            -> Apois isso colocamos o on e a condicao que queremos fazer a comparacao, ou seja, a condicao que queremos fazer a comparacao, agora que vai entrar a grade sacada do merge, iremos passar tres operacoes para ele a operacao de insercao, delecao ou update, logo abaixo iremos comecas 'WHEN MATCHED THEN', a traducao e 'QUANDO COINSCIDIR ENTÃO', ou seja, quando a condicao for verdadeira, e apos isso colocamos a operacao que queremos fazer, ou seja, quando der matched, atualize(update) a minha tabela alvoç
+
+                -> Temos a opcao de quando coinscidir e quando nao coinscidir, ou seja, caso coinscidir(when matched) ele ira fazer a operacao de update, e caso nao coinscidir(when not matched by target) ele ira fazer a operacao de insert, o ponto de atencao vem logo abaixo, onde colocamos values, que seria de onde vem esses valores, ou seja estamos passando uma insercao para nossa tabela alvo, e temos uma terceira opcao tambem: 
+
+                    -> Quando ele nao coinscidir com minha tabela de origem / fonte (when not matched by source) ele ira fazer a operacao de delete, ou seja, ele ira deletar da minha tabela ALVO;
+
+                    -> Um regra comum seria colocar a clausula OUTPUT no final que isso iria mostrar os valores modificados, podemos utilizar isso em clausulas como inserts, delets e updates, ou seja, ele ira mostrar os valores modificados, apos o output colocamos o que queremos mostrar, no caso colocamos deleted.* que ira mostrar os valores deletados, e apos isso colocamos $action que ira mostrar a acao que foi feita, ou seja, ele ira mostrar a acao que foi feita, e apos isso colocamos inserted.* que ira mostrar os valores inseridos;
+
+
+
+
+
+
+
+
+
+
+74. // SQL SERVER - CLAUSULA OUTPUT // 
+
+    # OUTPUT: 
+        -> A clausula output e uma clausula que permite voce mostrar os valores modificados, ou seja, ele ira mostrar os valores modificados, e tambem;
+
+        -> Vamos fazer um exemplo para melhor entendimento;
+
+        /*
+        DROP IF EXISTS #Produto2
+            GO
+
+        CREATE TABLE #Produto2 (
+            IdProduto INT PRIMARY KEY, 
+            NomeProduto VARCHAR(10),
+            Valor SMALLMONEY
+        )
+        GO
+        */
+
+        # OUTPUT INSERTED.*
+
+            INSERT INTO #Produto2
+                OUTPUT inserted.*, 
+                    --inserted.IdProduto
+
+                VALUES (1, 'Whey Protein', 110.00),
+                    (2, 'Creatina', 120.00),
+                    (3, 'Termogenico', 60.00),
+                    (4, 'Albumina', 80.00),
+                    (5, 'Proteina da Soja', 75.00)
+            GO
+            
+
+                -> Primeiramente criamos a tabela, mas se quisessemos imprimir e saber quais foram os valores que inserimos, uma maneira de ver isso e colocar abaixo do insert a clausula output, ou seja, ele ira mostrar os valores que foram afetados, apos colocamos alguns comandos que ira mostrar o resuldado como:
+
+                    inserted.* : nada mais e que uma tabela temporaria, que o sql server ira criar para poder armazenar algo que ira acontecer, so que esse inserted.* nos nao temos a menor manipulacao nele, e uma tabela que o sgbd criar para mostrar algo, do jeito em que colocamos ele esta pegando todos as colunas mais podemos simplismente pegar uma coluna, ou seja, ele ira mostrar os valores inseridos;
+            
+
+        # OUTPUT (NO UPDATE)
+
+            UPDATE #Produto2
+                SET Valor = 98.00
+                OUTPUT inserted.* 
+                INTO #TblLogOutput
+            WHERE IdProduto = 5
+
+                -> O que estamos fazendo ai e uma alteracao na tabela #Produto2, estamos alterando o valor de certa coluna da tabela, e para isso estamos utilizando o output para vez onde esta sendo feita as alteracoes, e apos isso queremos armazenar essa alteracao em uma tabela temporaria, so que essa tabela temporaria nao existe ainda, como estamos utilizando o into abaixo do output ele nao permite que voce crie em tempo de execucao, para isso ele pede em que criamos primeiro a tabela, para isso o que podemos fazer? 
+
+
+            ...Atualizando...
+
+            CREATE TABLE #TblLogOutput (
+                IdProduto INT, 
+                NomeProduto VARCHAR(10),
+                Valor SMALLMONEY
+            )
+                GO
+
+            UPDATE #Produto2
+                SET Valor = 98.00
+                OUTPUT inserted.* 
+                INTO #TblLogOutput
+            WHERE IdProduto = 5
+            GO
+
+                -> Se fizermos isso ele ira criar a tabela temporaria e ira armazenar os valores que foram modificados;
+
+
+
+
+
+
+
+
+
+
+75. // SQL SERVER VIEW //
+
+    -> view nada mais e que um select encapsulado que voce deixa la no sgbd armazenado, o que queremos dizer e que voce cria um script, e ao inves de salvarmos esse arquivo .sql para uma outra pessoa para que ele tambem rode, fica mais facil voce criar uma view e deixar ele ja pronto; 
+
+    # VIEW: 
+        -> A view e uma tabela virtual, ou seja, ela nao existe fisicamente, ela e uma tabela virtual que voce pode criar e deixar la no sgbd, e tambem;
+
+        -> Uma visao nao e uma tabela fisica, mas ela sempre aponta para uma tabela fisica, ele tambem nao permite utilizar o order by, nao e uma boa pratica ordernar uma visao, mas existe a possibilidade, atraves de outros metodos que veremos...
+
+
+        EXEMPLO: 
+
+            CREATE  VIEW vwTESTE
+                AS 
+                SELECT 
+                    BusinessEntityID,
+                    FirstName,
+                    MiddleName,
+                    LastName,
+                    JobTitle,
+                    DepartmentID,
+                    ShiftID,
+                    HireDate,
+                    VacationHours,
+                    SickLeaveHours
+                FROM HumanResources.Employee
+
+                    -> Executando isso a view ja esta criada, e apos isso podemos fazer um select para trazer os valores da view, ou seja, ele ira trazer os valores da view, e a partir de certa versao foi adicionada a clasula OR ALTER, que permite voce alterar a view, ou seja, ele ira alterar a view, e tambem;
+                
+                EXEMPLO:     
+                    CREATE OR ALTER VIEW vwTeste
+                        ...
+
+        
+        -> Como fazemos para ordernar uma visao sempre que nao podemos utilizar o order by? podemos utilizar o ROW_NUMBER(), exemplo: 
+
+            CREATE OR ALTER VIEW vwVisao
+                AS 
+                SELECT 
+                    BusinessEntityID,
+                    FirstName,
+                    MiddleName,
+                    LastName,
+                    ROW_NUMBER() OVER(ORDER BY BusinessEntityID) AS [Ordenacao]
+                    ...
+                FROM HumanResources.Employee
+
+                    -> Ele ira trazer a linha, ou seja, ele ira trazer a linha, e a partir do momento que ele encontrar um valor diferente ele ira trazer a linha desse novo valor;
+
+
+
+
+
+
+
+
+
+
+76. // SQL SERVER - VISOES - PARTE 2 //
+ 
+    -> Podemos criar visoes que apontam para uma tabela temporaria, o aconselhado e que nao faca isso, se o servidor cair ou for reiniciado, teremos problemas com a view pois ela ira se perder, no exemplo abaixo iremos poder ver a criacao de uma view que criada a partir de um CTE:
+
+
+    CREATE OR ALTER VIEW vw_PRODUTO
+        AS 
+
+            WITH CTE_PRODUTO AS (
+
+                SELECT IdProduto,
+                       NomeProduto,
+                       Valor 
+                    FROM Produto
+
+            UNION 
+
+                SELECT IdProduto,
+                       NomeProduto,
+                       Valor
+                    FROM Produto2
+            )
+
+            SELECT *
+                FROM CTE_PRODUTO
+    GO
+
+
+        SELECT *
+            FROM vw_PRODUTO
+        GO
+
+    -> Ao executar isso poderiamos criar a visao e visualizar ela funcionando perfeitamente, sem nenhum problema... mas ai eu te pergunto o que aconteceria caso embaixo fizessemos um INSERT:
+
+        INSERT INTO vw_PRODUTO
+            VALUES (6, 'Glutamina', 100.00)
+        
+
+        -> O que ira acontecer e um erro, pois 'ele contem um campo derivado ou constante', o que essa mensagem quer dizer, o que significa e, que queremos inserir algo ali, mas a forma de como nos contruimos nossa visao eu nao sei onde iremos inserir esse novo registro, pois no cte em que criamos temos duas tabelas, uma uniao de valores que esta sendo unido do de cima e de baixo, entao ele nao identifica onde tem que inserir;
+
+
+            !!* mas se tiramos o union dali e a outra tabela, poderemos ver que nao ira dar erro mais, pois vamos conseguir popular a tabela, nao e recomendo popular uma view pois e meio 'feio', se tem como popular a tabela diretamente porque nao? *!!
+
+ 
+            /*
+            CREATE OR ALTER VIEW vw_PRODUTO
+                AS 
+
+                    WITH CTE_PRODUTO AS (
+
+                        SELECT IdProduto,
+                            NomeProduto,
+                            Valor 
+                            FROM Produto
+
+                    )
+
+                    SELECT *
+                        FROM CTE_PRODUTO
+            GO
+
+                INSERT INTO vw_PRODUTO
+                    VALUES (6, 'Glutamina', 100.00)
+            */
+
+
+
+
+
+
+
+
+
+
+77. // SQL SERVER - VIEW - PARTE 3 //
+
+    -> Podemos utilizar algo em visoes chamado de SCHEMA BINDING, o que isso faz? ele faz com que a view fique atrelada a tabela, ou seja, se a tabela for alterada a view tambem sera alterada, e tambem;
+
+        -> Quando fazemos esse SCHEMABINDING estamos dizendo que as tabelas nao poderao ser alteradas, porque esse elemento ele esta totalmente dependente das tabelas, e uma vez que voce altere a tabela voce vai trazer problema para sua visao 
+
+        CREATE OR ALTER VIEW vw_PRODUTO
+            WITH SCHEMABINDING 
+        AS  
+            SELECT IdProduto,
+                   NomeProduto,
+                   Valor 
+                FROM Produto
+
+                ...
+
+                -> Se executarmos essa tabela ela ira dar um erro, quer dizer o seguinte que temos que referenciar qual exatamente e o schema em que a tabela produto esta, mesmo que seja implicito temos que referenciar, entao precisamos relacionar a tabela produto ao SCHEMA(dbo.Produto), e tambem a view ao SCHEMA(dbo.vw_PRODUTO), e apos isso podemos executar a view, e tambem;
+
+                    --FROM dbo.Produto -> Corrigido
+
+
+                -> Apos essas correcoes nao ira executar normalmente:
+                
+                ALTER TABLE Produto
+                    DROP COLUMN Valor
+                
+                    - mas se utilizar esse comando, ira dar um erro, pois nao iremos conseguir mais alterar nossa tabela produto, porque a minha visao depender da minha coluna valor, se quisessemos deletar a tabela tambem nao iremos consigir, pois a visao esta atrelada a tabela, e tambem;
+
+
+
+
+
+
+
+
+
+
+78. // SQL SERVER - VARIAVEIS - PARTE 1 //
+
+    -> Variaveis sao objetos que irao armazenar valores temporarios, apenas isso, objetos que irao receber valores que podem variar
+
+        -> Para declarar uma variavel usamos o declare: 
+
+        -- Sintaxe: DECLARE @NomeDaVariavel TipoDaVariavel
+
+            EXEMPLO: 
+
+                DECLARE @PrimeiraVariavel VARCHAR(50) = 'SQL SERVER no DevDojo'
+
+                SELECT @PrimeiraVariavel
+
+                    -> Ele ira trazer o valor da variavel na consulta, lembrando que quando utilizamos o igual em variaveis, significa que estamos atribuindo um valor a ela;
+
+                
+            * Podemos utilizar tambem o SET, ele vai permitir setar novos valores, ou seja fazer novas atribuicoes;
+
+                SET @PrimeiraVariavel = 'Maratona Java'
+
+                SELECT @PrimeiraVariavel
+
+                    -> Se fizermos isso ele ira trazer o novo valor que foi atribuido a variavel;
+
+    EXEMPLO: 
+
+        DECLARE @PrimeiraVariavel VARCHAR(50) = 'SQL SERVER no DevDojo',
+                @Num1 INT = 10,
+                @Hoje DATE = GETDATE()
+
+        SELECT @PrimeiraVariavel,
+                @Num1,
+                @Hoje
+        GO
+
+            -> Apos o GO o bloco de declaracoes sao apagadas, ou seja, as variaveis existem somente em tempo de execucao, portanto podemos normalmente utilizar o mesmo nome da variavel como abaixo que o bloco sera totalmente diferente do de cima;
+
+
+        DECLARE @PrimeiraVariavel VARCHAR(50) = 'Kayque Allan Ribeiro Freitas',
+                @Num1 INT = 19,
+                @Hoje DATE = GETDATE()
+
+        SELECT @PrimeiraVariavel,
+               @Num1,
+               @Hoje
+        GO
+
+            -> Se fizermos isso ele ira trazer o valor da variavel na consulta, lembrando que quando utilizamos o igual em variaveis, significa que estamos atribuindo um valor a ela;
+
+
+
+
+
+
+
+
+
+
+79. // SQL SERVER - VARIAVEIS - PARTE 2 //
+
+    -> O que e um operador composto? 
+        Nada mais e que um proprio operador que nos temos, pode ser '+ - / *', vamos ver um exemplo abaixo: 
+
+            DECLARE @Num1 INT = 10
+
+            SET @Num1 += 5
+
+                    -> O que esta acontecendo ai e, o num1 ele esta recebendo ele mesmo mais 5, ou seja, resultado final sendo 15, seria a mesma coisa que;
+
+                    --SET @Num1 = @Num1 + 5
+
+
+
+    __ATRIBUICAO ENTRE VARIAVEIS___ 
+
+        -> Vamos supor que queiramos atribuir a uma variavel outra variavel:
+
+            DECLARE @Num1 INT = 10,
+                    @Num2 = @Num1
+
+            -> Se fizermos isso ele ira dar erro pois esse @Num2 so ira existir em paralelo ao mesmo tempo que @Num1, ou seja, @Num1 ai ainda nao existe, estamos somente declarando ela, as duas irao ser criadas ao mesmo tempo, para que nao ocorra erro podemos fazer de outra forma;
+
+            DECLARE @Num1 INT = 10,
+                    
+            DECLARE @Num2 INT = @Num1
+
+                -> Se fizermos dessa forma ele ira dar certo porque? porque a declaracao da variavel 1 ja foi criada mesmo antes da dois, elas nao estao sendo criadas ao mesmo tempo, quando criamos a variavel 2 a primeira ja esta criada e podemos atribuir;
+
+
+
+    __VARIAVEIS E COLUNAS__ 
+
+        -> Aqui podemos ver que variaveis podem receber colunas, ou seja, podemos atribuir valores de colunas a variaveis, podemos utilizar subquerys tambem, desde que retorne somente 1 valor;
+
+        DECLARE @TextoConcatenado VARCHAR(60)
+                @Num1 INT = 10
+
+        SET @TextoConcatenado = (SELECT 
+                                    CONCAT_WS(' ', FirstName, MiddleName, LastName)
+                                        FROM Person.Person
+                                    WHERE BusinessEntityID = @Num1)
+
+                -> Se fizermos dessa forma ele nao ira dar erro algum, pois estamos o texto concatenado esta recebendo somente um valor de um subquery de outra tabela, isso tudo nao ocasiona problema algum;            
+    
+
+
+    __VARIAVEIS E FUNCOES__ 
+
+        -> Podemos passar funcoes para variaveis sem problema algum, exemplo: 
+
+            DECLARE 
+                @Controle VARCHAR(50),
+                @Num1 = 10,
+                @Num2 = 5
+
+            SET @Controle = IIF(@Num1 > @Num2, 'Maior', 'Menor')
+
+                -> Criamos uma variavel de controle que ela ira receber uma funcao e nao ira ocasionar problema algum, no exemplo de cima ele ira retornar o valor da variavel como 'Maior';
+
+
+
+
+
+
+
+
+
+
+80. // SQL SERVER - VARIAVEIS - PARTE 3 //
+
+    -> Veremos sobre variaveis de tabela, voce tambem pode criar uma variavel do tipo tabela, podemos trabalhar com tabela temporaria e tambem com variavel;
+
+        DECLARE 
+            @VariavelTabela TABLE (
+                IdTabela INT PRIMARY KEY, 
+                PrimeiroNome VARCHAR(50),
+                NomeMeio VARCHAR(50),
+                UltimoNome VARCHAR(50)
+            )
+
+        -> Se executarmos isso acima ele ira rodar sem problema algum, mas como fariamos a atribuicao para essa tabela? seria basicamente um insert mesmo: 
+
+        INSERT INTO @VariavelTabela
+            SELECT BusinessEntityID,
+                   FirstName,
+                   MiddleName,
+                   LastName
+                FROM Person.Person
+
+        -> Populamos nossa tabela atraves de um select, e como a @VariavelTabela e uma tabela temporaria, ela so existe em tempo de execucao, ela precisa ser tratada como uma tabela, entao para visualizar os registros precisamos fazer um select:
+
+            SELECT *
+                FROM @VariavelTabela
+
+                    --Assim poderemos visualizar os registros 
+
+        
+        
+        !!* Nao e permitido nos criamos dentro das visoes variaveis de tabela, porque como sao elementos temporarios, e a view nao pode receber nenhum elemento temporario, entao nao e permitido criar variaveis de tabela dentro de visoes *!! 
+
+
+
+
+                
+
+            
 
 
 
@@ -4005,7 +6063,6 @@
 
 
 // BANCO DE DADOS - FACULDADE PUC //
-
 
     --> // DDL = DATA DEFINITION LANGUAGE // <--
 
