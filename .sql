@@ -5546,7 +5546,76 @@
 
 
 
-75. // SQL SERVER VIEW //
+75. // INDICES (CREATE INDEX) //
+
+        Uma estrutura fisica opcionais de banco de dados criadas para melhorar a performace no acesso.
+
+        -> Cabera ao otimizador do SGBD optar ou nao pelo uso do indice (DML nao-procedural no SQL).
+
+        -> na falta de indices, o SGBD faz uma varredura completa da tabela (full table scan)
+
+        -> Os comandos SELECT que envolvem ORDER BY (ordenacao) tentem a ficar mais rapidos apos a criacao de indices pelos campos de ordenacao.
+
+        -> Os indices devem ser criados com prudencia 
+
+
+        # Para escolher bem os indices, analisa-se quais campos da tabela participam das expressoes WHERE de comandos de SELECT, UPDATE e DELETE. (indice e como se fosse um ponteiro).
+
+        # No entanto, o uso excessivo de indice pode ser prejudicial ao desempenho, pois todo comando que atualiza a tabela origem (INSERT, UPDATE, DELETE) pode gerar uma alteracao no indice.
+
+        # os indicies geralmente sao definidos em conjunto pelo DBA e pelo desenvolvedor / engenheiro de software, que conhecem quais sao as consultas mais criticas que sao mais frequentes e envolvem um maior volume de acesso a dados. 
+
+        # Quando as linhas sao adicionadas, alteradas ou apagadas, todos os indices sao atualizados sem necessidade de acao externa alguma, indices sao partes importantes do "tuning" do SGBD.
+
+        # Os indices sao criados usualmente para as chaves primarias e para chaves estrangeiras, visando agilizar os comandos que envolvem juncao de tabelas.
+
+        - O indice deve ser o mais seletivel possivel: 
+        
+            -> exemplo: nosso sistema de representacao comercial, sua empresa atua em MG principalmente, onde temos 10k de clientes, onde temos 9500 em MG, e o resto em outros estados, ai resolvemos criar um indice por estado !! entao o que vai acontecer e que sera um indice pouco seletivo, pois a grande parte esta alocada em minas, filtra pouco, (e bom criar indices em colunas que variam muito);
+
+
+        # Colunas muito usadas em clausulas WHERE tambem sao boas candidatas para indice;
+
+        # Os indices podem ou nao ser unicos (UNIQUE)
+
+        # O indice e unico quando nao se permite repeticoes no conjunto de campos que compoe o indice. Assim sendo, o indice pela chave primaria e sempre UNIQUE.
+
+        # Em alguns SGBDs, este indice pela chave primaria ja e gerado automaticamente.
+
+
+
+        SINTAXE: 
+
+            CREATE [UNIQUE] [CLUSTERED | NONCLUSTERED] INDEX
+                Nome-do-indice ON tabela (coluna ou lista-de-colunas)
+            
+            -> Se quiser que o indice seja unico devemos escrever UNIQUE na frente dele, colocamos o nome do incice, apos colocamos ON para se referenciar em qual tabela criar o indice ( em alguns SGBDs existe a clusterizacao que quer dizer ordenacao fisica, ou seja se criarmos um indice clusterizado ele vai buscar fazendo com que a tabela original os registros estejam fisicamente na ordem que deseja, caso seja nao clusterizado iremos ter uma estrutura paralela que e o indice que aponta para minha tabela original );
+
+            ex: 
+
+                CREATE INDEX IX_salario ON Funcionarios (CodDepto, Salario)  -> nao clusterizado 
+
+                CREATE UNIQUE INDEX CLUSTERED IX_Funcionarios ON Funcionario (Matricula) -> Clusterizado
+
+
+            Quando criamos um indice podemos tambem dizer se eles estao em ordem ascendente ou drecescente, no exemplo abaixo primeiro ordena por extado e depois por cidade:
+
+            CREATE INDEX Ind_Regional ON Clientes (Estado Asc, Cidade Asc);
+
+
+            caso nao queiremos mais o indice podemos tambem dar o comando de exclusao: 
+
+            DROP INDEX Nome-do-indice
+
+
+
+
+
+
+
+
+
+76. // SQL SERVER VIEW //
 
     -> view nada mais e que um select encapsulado que voce deixa la no sgbd armazenado, o que queremos dizer e que voce cria um script, e ao inves de salvarmos esse arquivo .sql para uma outra pessoa para que ele tambem rode, fica mais facil voce criar uma view e deixar ele ja pronto; 
 
@@ -5594,6 +5663,54 @@
                 FROM HumanResources.Employee
 
                     -> Ele ira trazer a linha, ou seja, ele ira trazer a linha, e a partir do momento que ele encontrar um valor diferente ele ira trazer a linha desse novo valor;
+        
+
+
+        __VISOES (CREATE VIEW)__FACULDADE PUC__
+
+
+        -> A visao e uma estritura logica que e montada dinamicamente a partir de um SELECT.
+
+        -> Atraves da visao, consegue-se selecionar linhas e colunas desejadas de uma tabela ou mais tabelas e dar um nome logico (nome da visao) para o resultado.
+
+            -> exemplo: Imagina que temos uma tabela funcionario, onde temos mais de 50 campos, incluindo nome, endereco, telefone, salario, codigo do cardo do funcionario... e queremos produzir uma lista que contem o nome, nome do departamento e tambem o numero do ramal, vamos obter informacoes da tabela funcionario, mas nao precisamos saber o salario para colocar na lista da empresa e uma informacao confidencial, entao podemos criar uma visao que faz a juncao da tabela departamento e tabela funcionario, e da tabela funcionario nao precisamos ver todas as colunas para saber o ramal dela.
+
+        # Utiliza - se visao para armazenar os selects mais frequentes no proprio banco de dados. 
+
+        # SGBD nao armazena as linhas resultantes da execucao da visao.
+
+        # A seguranca  e uma das vantagens, pois pode-se dar permissao de acesso para a visao e nao para a tabela inteira.
+
+        # Com isso, os programas aplicativos ou usuario finais podem acessar a visao, simplificando a sintaxe de comando.
+
+        # As visoes podem ser encadeadas, mas isto provoca uma queda de performace.
+
+            SINTAXE : 
+                --> So para reforcar, a visao e um comando de DDL uma estrutura logica do banco de dados, mas toda visao tem que ser associada ha um comando de SELECT que e um comando de DML.
+
+                CREATE VIEW nome-da-visao (apelidos para os campos - opcional)
+                    AS SELECT 
+
+                    exemplo: 
+                        CREATE VIEW SalarioDepto (Depto, Media_Salarial, Numero)
+                            AS SELECT Depto, AVG(Salario), COUNT(*)
+                            FROM funcionarios
+                        GROUP BY Depto
+
+                        -> AS SELECT ele faz basicamente agrupa os  funcionarios por departamento calculando a media e a quantidade de funcionarios
+
+
+            PODE SE CRIAR UMA VISAO DE UMA VISAO: 
+
+                        CREATE VIEW MaioresSalarios
+                            AS SELECT * FROM SalarioDepto
+                        WHERE Media_Salarial > 8000
+
+                        --> explicacao: criamos uma view de outra, essa dai seleciona de SalarioDepto que e uma view, para quem tem uma media salarial acima de 8000 mil reais
+
+            
+            REMOCAO DA VISAO:
+                    DROP VIEW staff;
 
 
 
@@ -5603,8 +5720,7 @@
 
 
 
-
-76. // SQL SERVER - VISOES - PARTE 2 //
+77. // SQL SERVER - VISOES - PARTE 2 //
  
     -> Podemos criar visoes que apontam para uma tabela temporaria, o aconselhado e que nao faca isso, se o servidor cair ou for reiniciado, teremos problemas com a view pois ela ira se perder, no exemplo abaixo iremos poder ver a criacao de uma view que criada a partir de um CTE:
 
@@ -5678,7 +5794,7 @@
 
 
 
-77. // SQL SERVER - VIEW - PARTE 3 //
+78. // SQL SERVER - VIEW - PARTE 3 //
 
     -> Podemos utilizar algo em visoes chamado de SCHEMA BINDING, o que isso faz? ele faz com que a view fique atrelada a tabela, ou seja, se a tabela for alterada a view tambem sera alterada, e tambem;
 
@@ -5715,7 +5831,7 @@
 
 
 
-78. // SQL SERVER - VARIAVEIS - PARTE 1 //
+79. // SQL SERVER - VARIAVEIS - PARTE 1 //
 
     -> Variaveis sao objetos que irao armazenar valores temporarios, apenas isso, objetos que irao receber valores que podem variar
 
@@ -5774,7 +5890,7 @@
 
 
 
-79. // SQL SERVER - VARIAVEIS - PARTE 2 //
+80. // SQL SERVER - VARIAVEIS - PARTE 2 //
 
     -> O que e um operador composto? 
         Nada mais e que um proprio operador que nos temos, pode ser '+ - / *', vamos ver um exemplo abaixo: 
@@ -5844,7 +5960,7 @@
 
 
 
-80. // SQL SERVER - VARIAVEIS - PARTE 3 //
+81. // SQL SERVER - VARIAVEIS - PARTE 3 //
 
     -> Veremos sobre variaveis de tabela, voce tambem pode criar uma variavel do tipo tabela, podemos trabalhar com tabela temporaria e tambem com variavel;
 
@@ -5885,22 +6001,49 @@
 
 
 
+82. // SQL SERVER - VARIAVEIS - PARTE 4 // 
 
+    -> No sql server nao temos variaveis de arrays ou vetores, existe uma forma de se subsistituir e e o que iremos fazer: 
 
+        DECLARE @Numeros VARCHAR(200) = '5, 6, 10'
+                @Texto VARCHAR(200) = 'Ken, Roberto, Dylan'
+            
+        SELECT *
+            FROM Person.Person
+        WHERE BusinessEntityID IN (SELECT value
+                                            FROM String_Split(@Numeros, ','))
 
+            -> O que aconteceu ai foi uma conversao implicita, ou seja, ele transformou o valor da minha variavel em varias linhas, tranformamos em uma coluna value que esta sendo comparada com a coluna BusinessEntityID;
 
 
+    !! Ao inves de trabalhamos com String_Split(), podemos trabalhar com a variavel do tipo tabela como abaixo: 
 
+        DECLARE @Tabela TABLE (
+            Id INT IDENTITY,
+            Texto VARCHAR(200),
+        )
 
+        INSERT INTO @Tabela 
+            SELECT TRIM(value) 
+                FROM String_Split(@Texto, ',')
 
+                -> O que fizemos ai foi criar uma variavel de tabela, para que nessa variavel de tabela a gente possa ter uma coluna que sera seu indice para que voce saiba em qual posicao procurar, para que mediante essa posicao ela ira receber um incremento de 1 + 1, e a coluna texto que ira recebero valor da variavel texto, colocamos o trim() ali para que ele retire os espacos a esquerda;  
 
 
+    
+    __VARIAVEL COM INSTRUCOES__
 
+        -> Podemos declarar uma variavel com instrucoes select;
 
+            DECLARE @Variavel VARCHAR(MAX) = 'SELECT * FROM Person.Person'
 
+            SELECT @Variavel
 
+            -> Se dermos um select na variavel ele ira trazer o valor da consulta em forma de tambela, mas temos uma declaracao que podemos executar essar variavel, que seria o...
 
+            EXEC(@Variavel)
 
+                -> Se fizermos isso ele ira executar a instrucao select na variavel sendo executado;
 
 
 
@@ -5911,20 +6054,43 @@
 
 
 
+83. // SQL SERVER - CONTROLE DE FLUXO - BEGIN END //
 
+    -> O que e o controle de fluxo? e uma estrutura que nos permite controlar o fluxo de execucao de um bloco de codigo, ou seja, ele ira controlar o fluxo de execucao de um bloco de codigo, e muito simples de se utilizar basta colocar o bloco de codigo entre o begin e o end;
 
+        EXEMPLO: 
 
+            BEGIN
+                DECLARE @Texto VARCHAR(100) = 'Aron'
 
+                SELECT * FROM Person.Person
+                    WHERE FirstName = @Texto 
 
+            END
 
+            -> Se fizermos isso ele ira trazer o valor da consulta, ou seja, ele ira trazer o valor da consulta, e tambem;
 
+        
 
+        EXEMPLO 2: 
 
+        BEGIN 
 
+            DECLARE @Texto VARCHAR(100) = 'Aron'
 
+                BEGIN 
+                    DECLARE @TextoInterno VARCHAR(100) 'Texto Interno'
 
+                END
 
+            SELECT 
+                @TextoInterno
+                * 
+                FROM Person.Person
+                WHERE FirstName = @Texto 
+        END
 
+            -> Se executamos isso ele ira rodar sem problemas nenhum, vemos que podemos criar dentro de outro BEGIN e END um BEGIN e END, isso tudo para ocasionar um bloco onde voce tem um controle de fluxo podendo se utilizar ela sem problema nenhum fora do escopo mais interno;
 
 
 
@@ -5935,25 +6101,983 @@
 
 
 
+84. // SQL SERVER - CONTROLE DE FLUXO - LACO DE REPETICAO WHILE //
 
+    -> Significa 'Enquanto', ou seja, ele vai executar uma determinada instrucao enquanto uma determinada execucao for verdadeira;
 
+        EX:
+            SET NOCOUNT ON 
 
+            DECLARE @Contador INT = 0
+                    
+            WHILE @Contador < 20
+                BEGIN 
+                    SELECT @Contador 
+                        SET @Contador += 1
+                END
 
+                -> Vamos fazer um laco de repeticao que ele ira incrementar a cada laco/repeticao, precisamos colocar o BEGIN END, para que ele possa executar o bloco de codigo, declaramos o set nocount on para que ele nao traga a quantidade de linhas afetadas, isso de certa forma melhora a performace, o set nos utilizamos como forma de parada, para que o laco de repeticao nao ocorra para sempre;
 
 
+        EXEMPLO 2:
 
+            SET NOCOUNT ON 
 
+            DECLARE @Contador INT = 0
 
+            CREATE TABLE #TempTbl (
+                Id INT PRIMARY KEY 
+            )
 
+            WHILE @Contador < 10000
+                BEGIN 
+                    INSERT INTO #TempTbl
+                        VALUES (@Contador)
+                    
+                    SET @Contador += 1
+                END
 
+            SELECT COUNT(*)
+                FROM #TempTbl
 
+                -> O que fizemos acima foi comecar com o comando SET NOCOUNT ON para que ele nao traga a quantidade de linhas afetadas, e apos isso criamos uma tabela temporaria, e apos isso criamos um laco de repeticao que ele ira inserir valores na tabela temporaria, e apos isso ele ira trazer a quantidade de linhas que foram inseridas na tabela temporaria;
+        
+    -> O while dentro de visao nao funciona, na verdade qualquer coisa que seja nivel de programacao dentro de uma visao nao funciona, porque visao nada mais e que um select encapsulado,
 
 
 
 
 
 
-             
+
+
+
+
+85. // SQL SERVER - CONTROLE DE FLUXO - TOMANDA DE DECISAO IF ELSE //
+
+    -> O que e o if else? e uma estrutura de controle de fluxo que nos permite tomar decisoes, ou seja, ele ira tomar decisoes baseadas em uma condicao;
+
+        EXEMPLO: 
+
+            DECLARE @Num1 INT = 10,
+                    @Num2 INT = 5
+
+            IF @Num1 > @Num2
+                BEGIN 
+                    SELECT 'Maior'
+                END
+            ELSE 
+                BEGIN 
+                    SELECT 'Menor'
+                END
+
+                -> Se fizermos isso ele ira trazer o valor 'Maior', pois a condicao e verdadeira, e tambem;
+
+    
+    __BREAK e CONTINUE__
+
+        -> O break e o continue sao utilizados em lacos de repeticao, o break ele ira parar o laco de repeticao, e o continue ele ira pular para a proxima iteracao, ou seja, ele ira pular para a proxima iteracao;
+
+        EXEMPLO: 
+
+            DECLARE @Contador INT = 0
+
+            WHILE @Contador <= 500
+
+                BEGIN 
+                    IF @Contador = 300
+                        BREAK -- INTERROMPE
+                ELSE 
+                    BEGIN 
+                        SET @Contador += 1
+                        PRINT CONCAT('Loop While, valor do contador', @Contador)
+                        CONTINUE 
+                    END 
+                END 
+            GO
+
+
+            -> O que fizemos acima utilziando o break e continue foi criar um laco de repeticao que ele ira parar quando o contador for igual a 300;
+
+
+
+
+
+
+
+
+
+
+86. // SQL SERVER - CONTROLE DE FLUXO - GOTO E WAITFOR //
+
+    -> O que e o goto? e uma instrucao que nos permite pular para uma determinada linha de codigo, ou seja, ele ira pular para uma determinada linha de codigo, e tambem e o waitfor? e uma instrucao que nos permite esperar um determinado tempo, ou seja, ele ira esperar um determinado tempo;
+
+        -> GOTO = Vai para;
+        -> Branch_One = Salto;
+
+        EXEMPLO: 
+
+            BEGIN 
+                DECLARE @Contador INT = 1
+
+                WHILE @Contador < 10
+                    BEGIN
+                        SELECT @Contador
+                            SET @Contador += 1
+
+                            IF @Contador = 4
+                                GOTO Branch_One
+                            
+                            IF @Contador = 5
+                                GOTO Brach_Two
+                    END 
+
+                Branch_One:
+                    PRINT 'Estamos no Branch One'
+
+                Branch_Two:
+                    PRINT 'Estamos no Branch Two'
+                
+            END
+
+                -> O que esta acontecendo ai, ele esta imprimindo na primeira coluna o valor da minha variavel contador que sera = 1, e apos isso ele ira verificar se o contador e menor que 10, caso ele seja menor que 10 ele ira incrementar 1, e apos isso ele ira verificar se o contador e igual a 4, caso ele seja igual a 4 ele ira pular para o branch_one, e apos isso ele ira imprimir 'Estamos no Branch One', e apos isso ele ira verificar se o contador e igual a 5, caso ele seja igual a 5 ele ira pular para o branch_two, e apos isso ele ira imprimir 'Estamos no Branch Two';
+
+
+    __WAITFOR__
+
+        -> Nada mais e que espero por ou espere para, ele ira executar determinada acao dentro de um determinado tempo que voce passar;   
+
+            EXEMPLO: 
+
+                WAITFOR DELAY '00:00:05'
+                SELECT * 
+                    FROM Person.Person
+                        --Podemos fazer com que essa query demore um pouco para ser executada
+
+
+
+
+
+
+
+
+
+
+87. // SQL SERVER - CONTROLE DE FLUXO - TRY CATCH (TRATAMENTO DE ERRO) // 
+
+    -> O que e o try catch? e uma estrutura de controle de fluxo que nos permite tratar erros, ou seja, ele ira tratar erros, e tambem;
+
+        -> Podemos visualizar as mensagens de erro, atraves de um select, como o de baixo:
+
+            SELECT * 
+                FROM sys.messages
+
+                    -> Ele ira retoranar todas as mensagens de erro, se observarmos bem todas ela tem um id de mensagem, esse schema sys ele e um schema do proprio sgbd reservado para coisas do systema;
+        
+        
+        EXEMPLO:
+
+            -> Vamos tentar tratar uma divisao por zero, 
+                
+                -- BEGIN TRY: Tente executar
+                -- BEGIN CATCH: Se der erro, capture o erro 
+
+            BEGIN TRY 
+                SELECT 1/0
+            END TRY
+
+            BEGIN CATCH 
+                SELECT 'Deu ruim nessa conversao, vamos mudar!!',
+                        ERROR_NUMBER() AS NumeroErro,
+                        
+            END CATCH 
+
+                __ERROS__: 
+                    ERROR_MESSAGE(): Ele ira trazer a mensagem de erro  
+                    ERROR_NUMBER(): Ele ira trazer o numero do erro
+                    ERROR_SEVERITY(): Ele ira trazer a severidade do erro
+                    ERROR_STATE(): Ele ira trazer o estado do erro
+                    ERROR_PROCEDURE(): Ele ira trazer o procedimento que deu erro
+                    ERROR_LINE(): Ele ira trazer a linha que deu erro
+
+
+
+
+
+
+
+
+
+
+88. // SQL SERVER - FUNCTION - PARTE 1 // 
+
+    -> O que e uma funcao? e um bloco de codigo que executa uma determinada tarefa, ou seja, ele ira executar uma determinada tarefa
+
+    __COMO CRIAR UMA FUNCAO__
+
+        -/*
+            CREATE OR ALTER schema.nome_funcao
+                (
+                    @Parametro1 tipo,
+                    @Parametro2 tipo
+                )
+        -*/
+
+        EXEMPLO: 
+            -> Iremos utilizar a funcao para transforma uma data em extenso;
+
+            CREATE OR ALTER FUNCTION dbo.fnDataExtenso (  @Data DATE )    
+                RETURNS VARCHAR(100)
+                    AS 
+                BEGIN 
+                    RETURN CONCAT('Contagem MG - ', DAY(@Data), ' de ', DATENAME(MONTH ,@Data), ' de ', YEAR(@Data))
+                END
+            GO
+
+                -> Primeira colocamos a nomeclatura de criacao depois o nome, e apos passamos os parametros, e caso(obviamente) desejamos retornar algo colocamos o returns, como queremos trazer uma data por extenso colocamos o tipo de retorno como varchar, apos colocamos o AS, e apos colocamos um begin e end para que ele possa executar o bloco de codigo e dentro colocamos o que a funcao ira retornar; 
+                
+                    !! dentro da function nao podemos fazer insert, update, delete e nem set, so podemos fazer select !!;
+
+
+
+        EXEMPLO 2: 
+
+            -> Vamos fazer uma funcao onde realiza a subtracao da diferenca entre duas datas, mas porque criar essa funcao? porque se voce colocar a primeira data sendo menor que a segunda ira dar um numero negativo e isso nao e legal;
+
+            CREATE OR ALTER FUNCTION dbo.fnDataDiff ( @Data1 DATE, @Data2 DATE )
+                RETURNS INT 
+                    AS 
+                BEGIN
+                    IF @Data1 >= @Data2
+                        RETURN DATEDIFF(DAY, @Data2, @Data1)
+                    ELSE 
+                        RETURN DATEDIFF(DAY, @Data1, @Data2) 
+                END
+            GO
+
+                SELECT
+                    Data1,
+                    Data2,
+                    dbo.fnDataDiff(Data1, Data2) AS Diferenca
+                FROM
+                    (
+                        VALUES 
+                            ('2021-01-01', '2021-01-10'),
+                            ('2021-01-10', '2021-01-01'),
+                            ('2021-01-01', '2021-01-01')
+                    )   AS Datas(Data1, Data2)
+
+                    -> O que fizemos foi criar uma funcao que ira retornar a diferenca entre duas datas, e apos isso fizemos um select para trazer a diferenca entre as datas, e tambem; 
+        
+
+
+
+
+
+
+
+
+
+89. // EXERCICIO PREENCHIMENTO PARA BAIXO (FILL DOWN) //
+
+    Exemplo: 
+
+    BEGIN 
+        SET NOCOUNT ON 
+
+        DECLARE @DtMinima DATE,
+                @Hoje DATE = TRY_CAST(GETDATE() AS DATE)
+
+        DECLARE @TblMovimentacao TABLE (
+            Matricula VARCHAR(9),
+            DataMovimentacao DATE,
+            Cargo VARCHAR(50)
+
+            PRIMARY KEY (Matricula, DataMovimentacao)
+        ) 
+
+        DECLARE @TblCalendario TABLE (
+            [Data] DATE PRIMARY KEY
+            
+        )          
+
+        INSERT INTO @TblMovimentacao
+            SELECT Matricula,
+                   DataMovimentacao,
+                   Cargo
+
+                FROM (
+                    VALUES ('123456789', TRY_CAST('1990-03-22' AS DATE, 'Estagiario')),
+                        ('123456789', TRY_CAST('2005-01-31' AS DATE, 'Tecnico')),
+                        ('123456789', TRY_CAST('2001-09-23' AS DATE, 'Analista JR')),
+                        ('123456789', TRY_CAST('2023-05-15' AS DATE, 'Analista PL')),
+                        ('123456789', TRY_CAST('2002-03-14' AS DATE, 'Especialista')),
+                        ('123456789', TRY_CAST('2006-05-12' AS DATE, 'Arquiteto')),
+                        ('123456789', TRY_CAST('1989-06-17' AS DATE, 'Engenheiro')),
+                        ('123456789', TRY_CAST('2004-07-13' AS DATE, 'Coordenador')),
+                        ('123456789', TRY_CAST('2003-08-11' AS DATE, 'Diretor'))
+
+                )   as TabelaVirtual([Matricula], [DataMovimentacao], [Cargo])
+
+            SET @DataMinima = (SELECT MIN(DataMovimentacao) FROM @TblMovimentacao)
+
+            WHILE @DataMinima < @Hoje
+                BEGIN 
+                    INSERT INTO @TblCalendario
+                        VALUES (@DataMinima)
+
+                    SET @DataMinima = DATEADD(DAY, 1, @DataMinima)
+                END;
+
+
+            WITH CtePreenchimentoParaBaixo AS ( 
+                SELECT [Data],
+                    Matricula,
+                    DataMovimentacao,
+                    Cargo
+                    FROM @TblCalendario
+                LEFT JOIN @TblMovimentacao
+                    ON [Data] = DataMovimentacao
+            )
+
+            SELECT * 
+                FROM CtePreenchimentoParaBaixo
+    END
+
+
+        __EXPLICACAO__:
+
+        1️⃣ Configuração Inicial
+            - SET NOCOUNT ON: Impede que o SQL Server retorne mensagens do tipo "N linhas afetadas".
+        
+            __Declaração de variáveis__:
+                - @DtMinima: Será usada para controlar a data mínima do calendário.
+                - @Hoje: Define a data de hoje usando GETDATE() convertido para DATE.
+
+            __Criação de tabelas temporárias__:
+                - @TblMovimentacao: Armazena as movimentações de cargo de um funcionário ao longo do tempo.
+                - @TblCalendario: Armazena um calendário de datas contínuas.
+
+
+        2️⃣ Inserção de Dados na @TblMovimentacao:
+        
+            -> Essa tabela guarda mudanças de cargo do funcionário "123456789", com datas específicas. O código usa VALUES para popular a tabela.
+
+
+        3️⃣ Geração da Tabela de Datas (@TblCalendario):
+            
+            -> A tabela de calendário é preenchida do primeiro evento até a data de hoje, garantindo que todas as datas dentro desse intervalo estejam presentes.
+
+                - @DataMinima é definida como a menor data de movimentação.
+                - Um loop WHILE preenche a tabela, adicionando um dia por vez (DATEADD(DAY, 1, @DataMinima)).
+
+            -> No final desse processo, @TblCalendario conterá todas as datas entre a movimentação mais antiga e hoje.
+
+        4️⃣ Preenchimento para Baixo (Fill Down)
+            
+            -> A CTE (CtePreenchimentoParaBaixo) une a tabela de datas (@TblCalendario) com as movimentações (@TblMovimentacao):
+
+
+        Isso significa que:
+            - Todas as datas da @TblCalendario estarão presentes.
+            - Apenas nas datas de mudança de cargo, haverá um valor na coluna Cargo.
+            - As demais datas terão NULL na coluna Cargo.
+
+
+
+
+
+
+
+
+
+
+90. // STORED PROCEDURE - PARTE 1 //
+
+        -> O que e uma stored procedure? e um bloco de codigo que executa uma determinada tarefa, ou seja, ele ira executar uma determinada tarefa;
+
+
+        __COMO_CRIAR_UMA_PROCEDURE__:
+
+        /*
+            SINTAXE:
+              CREATE OR ALTER PROC schema.nome_procedure
+                AS 
+            BEGIN
+                -- Bloco de codigo
+            END
+        */
+
+            EXEMPLO: 
+
+                CREATE OR ALTER PROC dbo.procPrimeiraProcedure
+                    AS 
+                        SELECT * FROM TblFunc 
+                            WHERE SitFolha <> 'D'
+                GO
+
+                EXEC dbo.procPrimeiraProcedure
+
+                    -> O que fizemos foi criar uma procedure que ira trazer todos os funcionarios que nao estao demitidos, e apos isso executamos a procedure;
+
+                
+            EXEMPLO 2:
+
+                CREATE OR ALTER PROC dbo.procPrimeiraProcedure (
+                    --Aqui dentro podemos passar argumentos ou paramentros que irao servir de filtro para a nossa procedure ou simplismente tomada de decisoes;
+                )
+
+                -> ajustando: 
+
+                    CREATE OR ALTER PROC dbo.procPrimeiraProcedure (
+                        @argumento VARCHAR(1)
+                    )
+
+                        AS 
+                            IF @argumento = 'S'
+                                BEGIN 
+                                    SELECT * FROM TblFunc
+                                        WHERE SitFolha = 'D'
+                                END
+                            ELSE 
+                                BEGIN 
+                                    SELECT * FROM TblFunc
+                                        WHERE SitFolha <> 'D'
+                                END
+                    GO
+
+                        -> Fizemos a criacao agora da procedure com um argumento, agora precisamos executar, nao e da mesma forma que antes pois temos que passar os argumentos dentro;
+
+                        ... para executar     
+
+                        EXEC dbo.procPrimeiraProcedure('S  b')
+
+                            -> Se fizermos isso ele ira trazer todos os funcionarios que estao demitidos, e tambem;
+
+
+
+
+
+
+
+
+
+
+91. // STORED PROCEDURE - PARTE 2 // 
+
+    __PROCURAR__NO__SISTEMA__
+
+        -> Dentro do SQL SERVER sera que temos uma forma mais simplificada de procurar por procedures e visoes que estao na base de dados? sim e essas informacoes entao na base MASTER;
+
+
+            seria algo como: 
+
+                SELECT * 
+                    FROM sys.objects
+                    --> Ele ira trazer todos os objetos da base de dados, lembrando que executar esse comando em uma grande base de dados pode ser um pouco pesado e resultar em um grande problema;
+
+            para pegar somente as procedures: 
+
+                SELECT * 
+                    FROM sys.objects
+                    WHERE type = 'P'
+
+
+    __DB_NAME__
+
+        -> Podemos utilizar o db_name() para saber em qual base de dados estamos, ou seja, ele ira trazer o nome da base de dados que estamos trabalhando;
+
+            SELECT db_name()
+
+                -> Se fizermos isso ele ira trazer o nome da base de dados que estamos trabalhando;
+
+
+    __PROCEDURES__NATIVAS__
+
+        -> Ela vai ajudar com informacoes de alguns obejtos da base, ela pede um argumento e como argumento voce passa o nome da procedure, exemplo: 
+
+            EXEC sp_help 'procPrimeiraProcedure'                
+                --> Se fizermos isso ele ira trazer informacoes sobre a procedure, ira passar o nome dela, argumento, schema, data de criacao;
+
+
+        -> Podemos utilizar tambem para tabelas onde ele ira trazer mais informacoes:
+
+            EXEC sp_help 'TblFunc'
+                --> Se fizermos isso ele ira trazer informacoes sobre a tabela, ira passar o nome dela, argumento, schema, data de criacao, e tambem;
+
+    
+
+
+    EXEMPLO_UTILIZANDO_UMA_PROCEDURE:
+
+
+        CREATE OR ALTER PROC dbo.procPrimeiraProcedure (
+            @PrimeiroNome VARCHAR(30),
+            @SegundoNome VARCHAR(30),
+            @IndiceMatricula VARCHAR(MAX)
+        )
+            AS 
+                BEGIN 
+                    SET NOCOUNT ON
+
+                    SELECT PP.BusinessEntityID,
+                           Title,
+                           CONCAT_WS(' ', FirstName, MiddleName, LastName) AS FullName,
+                           PEA.EmailAddress,
+                           OA1.Address
+                        FROM AdventureWorks2019.Person.Person AS PP
+                    LEFT JOIN AdventureWorks2019.Person.EmailAddress AS PEA
+                        ON PP.BusinessEntityID = PEA.BusinessEntityID
+                    
+                    OUTER APPLY (
+                        SELECT CONCAT_WS(' | ', AddressLine1, city, PostalCode) as [ADDRESS]
+                            FROM AdventureWorks2019.Person.Address AS PA
+                        INNER JOIN AdventureWorks2019.Person.BusinessEntityAddress AS PBEA
+                            ON PA.AddressID = PBEA.AddressID
+                        WHERE PP.BusinessEntityID = PBEA.BusinessEntityID
+                    ) AS OA1
+
+                    WHERE (( FirstName = ( CASE @PrimeiroNome 
+                                            WHEN '' THEN FirstName
+                                            ELSE @PrimeiroNome
+                                            END)
+
+                                AND MiddleName = (CASE @SegundoNome
+                                                    WHEN '' THEN MiddleName
+                                                    ELSE @SegundoNome
+                                                    END)
+                        )
+                        OR PP.BusinessEntityID IN (SELECT value 
+                                                        FROM STRING_SPLIT(@IndiceMatricula, ','))
+                    ORDER BY FullName
+            END 
+
+
+            -> A stored procedure procPrimeiraProcedure realiza uma consulta na tabela Person.Person e retorna informações como ID, nome completo, e-mail e endereço das pessoas, com base em três parâmetros de entrada:
+
+                - @PrimeiroNome: Filtra pelo primeiro nome, caso fornecido.
+                - @SegundoNome: Filtra pelo segundo nome, caso fornecido.
+                - @IndiceMatricula: Filtra pelas IDs de entidades passadas como uma lista separada por vírgulas.
+
+            ->  A consulta usa condições para incluir registros com base nos parâmetros fornecidos ou usa os valores existentes nas tabelas se os parâmetros forem vazios. Além disso, a consulta é ordenada pelo nome completo da pessoa.
+
+
+
+
+
+
+
+
+
+
+92. // STORED PROCEDURE - SIMULACAO DISSIDIO - PARTE 1 // 
+
+    -> Dissidio nada mais e que um acordo entre a empresa entre e o sindicado para que esse aumento que sai no salario ele acompanhe ou tente acompanhar a inflacao, o objetivo e nos simularmos um dissidio utilizando uma procedure para que possamos deixar ela na base e que seja via banco de dados essa chamada ou via aplicacao seja totalmente funcional;
+
+    -> O dissidio normalmente acompanha a inflacao entao vamos assumir, que esse dissidio seja sempre anualmente, vamos preparar a procedure para que ela execute sempre a cada ano, para que conseguimos ter isso iremos precisar do auxilio de algumas variaveis;
+    
+        CREATE OR ALTER PROC dbo.proCalculoDissidio (
+            @ValorDissidio FLOAT 
+        )
+
+        WITH ENCRYPTION 
+            AS 
+                BEGIN
+                    SET NOCOUNT ON;
+
+                    DECLARE @UltimoDissidio DATE, 
+                            @Hoje DATE = DATEADD (MONTH, -48, GETDATE())
+
+                    IF DB_NAME = 'DEVDOJO'
+                        BEGIN 
+                            IF OBJECT_ID('dbo.TblFuncAux') IS NULL
+                                BEGIN 
+                                    SELECT *,
+                                           Salarios AS SalarioDissidio
+                                        INTO dbo.TblFuncAux
+                                        FROM TblFunc 
+                                    
+                                    ALTER TABLE dbo.TblFuncAux
+                                        ADD CONSTRAINT pkBusinessEntityID PRIMARY KEY (BusinessEntityID)
+                                END
+                        END
+
+
+                    ELSE 
+                        BEGIN 
+                            DROP PROC dbo.proCalculoDissidio;
+                            PRINT 'Base nao permitida para a criacao / execucao dessa procedure...' AS [ATENCAO]
+                        END 
+                END
+        GO  
+
+
+        __COMPREENDENDO_O_REALIZADO_ACIMA__
+
+            # A stored procedure que você forneceu, chamada dbo.proCalculoDissidio, realiza algumas operações de configuração e validações para o cálculo do dissídio, mas sua execução depende do ambiente em que está sendo utilizada (verifica se está na base de dados DEVDOJO).
+
+                -> Vamos detalhar o que cada parte da procedure faz:
+
+            #  Parâmetros:
+                - @ValorDissidio: Esse é o parâmetro de entrada da procedure, representando o valor do dissídio, do tipo FLOAT.
+            
+            #  Configuração Inicial:
+                - WITH ENCRYPTION: A procedure é criada com criptografia, o que significa que o código da procedure será ofuscado no banco de dados (não pode ser lido diretamente).
+
+                - SET NOCOUNT ON: Esse comando faz com que a procedure não retorne o número de linhas afetadas após a execução, o que pode melhorar a performance em alguns casos.
+
+
+            #  Declaração de Variáveis:
+                - @UltimoDissidio: Uma variável do tipo DATE que, aparentemente, será utilizada mais tarde para armazenar a data do último dissídio.
+
+                - @Hoje: Variável do tipo DATE que armazena a data de 48 meses atrás a partir da data atual (usando GETDATE()).
+
+
+            #  Condicional de Ambiente (IF DB_NAME = 'DEVDOJO'):
+                -> A procedure verifica se o banco de dados em que está sendo executada é o banco de dados DEVDOJO. Se for, ela executa a seguinte lógica:
+
+                    1. Verificação da Existência da Tabela dbo.TblFuncAux:
+                        - Se a tabela dbo.TblFuncAux não existir, ela é criada a partir de uma consulta à tabela TblFunc. A consulta seleciona todas as colunas de TblFunc e cria a tabela dbo.TblFuncAux com uma coluna extra chamada SalarioDissidio, que é uma cópia da coluna Salarios da tabela TblFunc.
+
+                        - Após a criação da tabela, a procedure adiciona uma restrição de chave primária (PRIMARY KEY) à coluna BusinessEntityID da tabela dbo.TblFuncAux.
+
+
+            #  Caso o Banco Não Seja o DEVDOJO:
+                - Se o banco de dados em que a procedure é executada não for o DEVDOJO, ela remove a procedure (DROP PROC dbo.proCalculoDissidio), o que basicamente apaga a procedure do banco.
+
+                - Também imprime uma mensagem de atenção, dizendo que a base não é permitida para a criação ou execução dessa procedure.
+
+
+            # Resumo:
+                - Se o banco de dados for DEVDOJO, a procedure tenta criar a tabela auxiliar dbo.TblFuncAux (se ela não existir), copiando dados da tabela TblFunc e adicionando uma chave primária à coluna BusinessEntityID.
+
+                - Se o banco de dados não for DEVDOJO, a procedure é excluída, e uma mensagem de erro é exibida.
+
+
+
+
+
+
+
+
+
+
+93. // STORED PROCEDURE - SIMULACAO DISSIDIO - PARTE 2 //
+
+    __CONTINUACAO__...
+
+    CREATE OR ALTER PROC dbo.proCalculoDissidio (
+        @ValorDissidio FLOAT 
+    )
+
+    WITH ENCRYPTION 
+        AS 
+            BEGIN
+                SET NOCOUNT ON;
+
+                DECLARE @UltimoDissidio DATE, 
+                        @Hoje DATE = DATEADD (MONTH, -48, GETDATE())
+
+                IF DB_NAME = 'DEVDOJO'
+                    BEGIN 
+                        IF OBJECT_ID('dbo.TblFuncAux') IS NULL
+                            BEGIN 
+                                SELECT *,
+                                        Salarios AS SalarioDissidio
+                                    INTO dbo.TblFuncAux
+                                    FROM TblFunc 
+                                
+                                ALTER TABLE dbo.TblFuncAux
+                                    ADD CONSTRAINT pkBusinessEntityID PRIMARY KEY (BusinessEntityID)
+                            END
+
+                        IF OBJECT_ID('dbo.TblHistoricoDissidio') IS NULL
+                            BEGIN 
+                                CREATE TABLE dbo.TblHistoricoDissidio (
+                                    DtDissidio DATE PRIMARY KEY, 
+                                    Porcentagem FLOAT
+                                )
+                            END
+                    END
+
+                    IF OBJECT_ID('dbo.TblHistoricoSalario') IS NULL 
+                        BEGIN 
+                            CREATE TABLE dbo.TblHistoricoSalario (
+                                Matricula VARCHAR(8),
+                                DtModificacao DATE,
+                                Salario FLOAT,
+                                TpAlteracao VARCHAR(20),
+
+                                CONSTRAINT PkMatriculaDtMod PRIMARY KEY ( Matricula, DtModificacao )
+                            )
+
+                            INSERT INTO dbo.TblHistoricoSalario
+                                SELECT Matricula,
+                                        DtAdmissao,
+                                        Salario,
+                                        'Salario Inicial' AS TpAlteracao
+                                FROM dbo.TblFuncAux
+                    END 
+                    
+                    SELECT @DtUltimoDissidio = MAX(DtDissidio)
+                        FROM dbo.TblHistoricoDissidio
+                    
+                    IF( @DtUltimoDissidio IS NULL OR DATEDIFF(DAY, @DtUltimoDissidio, Hoje) >= 365)
+                        BEGIN
+                            UPDATE dbo.TblFuncAux
+                                SET SalarioDissidio += ( SalarioDissidio * @ValorDissidio)
+                                WHERE ( DtDemissao <> '' OR DtDemissao IS NOT NULL)
+
+                            INSERT INTO dbo.TblHistoricoDissidio
+                                VALUES (@Hoje, @ValorDissidio)
+                        END 
+                            
+
+
+                ELSE 
+                    BEGIN 
+                        DROP PROC dbo.proCalculoDissidio;
+                        PRINT 'Base nao permitida para a criacao / execucao dessa procedure...' AS [ATENCAO]
+                    END 
+            END
+    GO      
+
+
+        __ATUALIZACAO_DA_PROCEDURE__
+
+            1. Criação da Tabela TblHistoricoDissidio
+
+                Adicionado:
+                /*sql
+                Copiar código
+                IF OBJECT_ID('dbo.TblHistoricoDissidio') IS NULL
+                    BEGIN 
+                        CREATE TABLE dbo.TblHistoricoDissidio (
+                            DtDissidio DATE PRIMARY KEY, 
+                            Porcentagem FLOAT
+                        )
+                    END
+                */
+
+                - A tabela TblHistoricoDissidio foi criada se não existir. Ela possui duas colunas: DtDissidio (data do dissídio) e Porcentagem (valor do dissídio).
+
+
+            2. Criação da Tabela TblHistoricoSalario
+                Adicionado:
+                /*sql
+                Copiar código
+                IF OBJECT_ID('dbo.TblHistoricoSalario') IS NULL 
+                    BEGIN 
+                        CREATE TABLE dbo.TblHistoricoSalario (
+                            Matricula VARCHAR(8),
+                            DtModificacao DATE,
+                            Salario FLOAT,
+                            TpAlteracao VARCHAR(20),
+
+                            CONSTRAINT PkMatriculaDtMod PRIMARY KEY ( Matricula, DtModificacao )
+                        )
+
+                        INSERT INTO dbo.TblHistoricoSalario
+                            SELECT Matricula,
+                                    DtAdmissao,
+                                    Salario,
+                                    'Salario Inicial' AS TpAlteracao
+                            FROM dbo.TblFuncAux
+                    END
+                */
+
+                - A tabela TblHistoricoSalario foi criada se não existir. Ela armazena o histórico de salários dos funcionários, incluindo a matrícula, data da modificação, valor do salário e o tipo de alteração. Também é criada uma chave primária composta por Matricula e DtModificacao.
+
+                - Inserção de Dados: O código insere o salário inicial de todos os funcionários da TblFuncAux na TblHistoricoSalario.
+
+            3. Cálculo e Atualização de Dissídio
+                Adicionado:
+                /*sql
+                Copiar código
+                SELECT @DtUltimoDissidio = MAX(DtDissidio)
+                    FROM dbo.TblHistoricoDissidio
+
+                IF( @DtUltimoDissidio IS NULL OR DATEDIFF(DAY, @DtUltimoDissidio, Hoje) >= 365)
+                    BEGIN
+                        UPDATE dbo.TblFuncAux
+                            SET SalarioDissidio += ( SalarioDissidio * @ValorDissidio)
+                            WHERE ( DtDemissao <> '' OR DtDemissao IS NOT NULL)
+
+                        INSERT INTO dbo.TblHistoricoDissidio
+                            VALUES (@Hoje, @ValorDissidio)
+                    END
+                */ 
+
+                - Cálculo do Dissídio: O código agora verifica a data do último dissídio registrado (DtUltimoDissidio) e, caso o dissídio anterior tenha ocorrido há mais de um ano, ou se não houver nenhum dissídio registrado, ele aplica o valor do dissídio à tabela TblFuncAux, atualizando o campo SalarioDissidio de todos os funcionários que tenham data de demissão.
+
+                - Inserção no Histórico: Após atualizar o salário, o valor do dissídio é inserido na tabela TblHistoricoDissidio.
+
+
+
+
+
+
+
+
+
+
+94. // STORED PROCEDURE - SIMULACAO DISSIDIO - PARTE 3 //
+
+    -> Recaptulando... estamos criando uma proc onde o usuario ou outro desenvolvedor obrigatoriamente passe um argumento que e a porcentagem de um dissidio para que se aplique a cada funcionario, so que isso tem que acontecer anualmente, a proc caso ela seja criada em uma outra base diferente da DEVDOJO ela ira ser excluida e nao ira acontecer nada, e uma vez dropada queremos que retorne uma mensagem, isso e uma trava que estamos colocando no codigo, verificamos se estamos na base DEVDOJO
+
+    __ATUALIZANDO__
+
+    CREATE OR ALTER PROC dbo.proCalculoDissidio (
+        @ValorDissidio FLOAT = 0.10
+    )
+
+    WITH ENCRYPTION 
+        AS 
+            BEGIN
+                SET NOCOUNT ON;
+
+                DECLARE @UltimoDissidio DATE, 
+                        @Hoje DATE = DATEADD (MONTH, -48, GETDATE())
+
+                IF DB_NAME = 'DEVDOJO'
+                    BEGIN 
+                        IF OBJECT_ID('dbo.TblFuncAux') IS NULL
+                            BEGIN 
+                                SELECT *,
+                                        Salarios AS SalarioDissidio
+                                    INTO dbo.TblFuncAux
+                                    FROM TblFunc 
+                                
+                                ALTER TABLE dbo.TblFuncAux
+                                    ADD CONSTRAINT pkBusinessEntityID PRIMARY KEY (BusinessEntityID)
+                            END
+
+                        IF OBJECT_ID('dbo.TblHistoricoDissidio') IS NULL
+                            BEGIN 
+                                CREATE TABLE dbo.TblHistoricoDissidio (
+                                    DtDissidio DATE PRIMARY KEY, 
+                                    Porcentagem FLOAT
+                                )
+                            END
+                    END
+
+                    IF OBJECT_ID('dbo.TblHistoricoSalario') IS NULL 
+                        BEGIN 
+                            CREATE TABLE dbo.TblHistoricoSalario (
+                                Matricula VARCHAR(8),
+                                DtModificacao DATE,
+                                Salario FLOAT,
+                                TpAlteracao VARCHAR(20),
+
+                                CONSTRAINT PkMatriculaDtMod PRIMARY KEY ( Matricula, DtModificacao )
+                            )
+
+                            INSERT INTO dbo.TblHistoricoSalario
+                                SELECT Matricula,
+                                        DtAdmissao,
+                                        Salario,
+                                        'Salario Inicial' AS TpAlteracao
+                                FROM dbo.TblFuncAux
+                    END 
+                    
+                    SELECT @DtUltimoDissidio = MAX(DtDissidio)
+                        FROM dbo.TblHistoricoDissidio
+                    
+                    IF( @DtUltimoDissidio IS NULL OR DATEDIFF(DAY, @DtUltimoDissidio, Hoje) >= 365)
+                        BEGIN
+                            UPDATE dbo.TblFuncAux
+                                SET SalarioDissidio += ( SalarioDissidio * @ValorDissidio)
+                                WHERE ( DtDemissao <> '' OR DtDemissao IS NOT NULL)
+
+                            INSERT INTO dbo.TblHistoricoDissidio
+                                VALUES (@Hoje, @ValorDissidio)
+
+                            INSERT INTO dbo.TblHistoricoSalario
+                                SELECT Matricula,
+                                       @Hoje AS HOJE,
+                                       SalarioDissidio,
+                                       'Dissidio' AS TpAlteracao
+                                    FROM dbo.TblFuncAux
+                        END 
+                    
+                    ELSE 
+                        BEGIN 
+                            SELECT 'Execucao negada, dissidio fora da epoca...' AS [Alerta]
+                        END
+                            
+
+
+                ELSE 
+                    BEGIN 
+                        DROP PROC dbo.proCalculoDissidio;
+                        PRINT 'Base nao permitida para a criacao / execucao dessa procedure...' AS [ATENCAO]
+                    END 
+            END
+    GO      
+
+
+
+
+
+
+
+
+
+
+95. // SQL SERVER - TRANSACTION - PARTE 1 // 
+
+    -> Uma transacao e uma unica unidade de trabalho. Se uma transacao tiver exito, todas as modificacoes de dados feitas durante a transacao estarao confirmadas e se tornarao parte permanente do banco de dados. Se uma transacao encontrar erros e precisar ser cancelada ou revertida, todas as modificacoes de dados serao apagadas.
+
+        - O sql server opera nos seguintes modos de transacao: 
+
+            * Transacoes de confirmacao automatica
+            * Cada instrucao individual e uma transacao.
+
+        # Transacao explicitas: 
+            - Cada transacao e iniciada explicitamente com a intrucao BEGIN TRANSACTION e finalizada explicitamente com uma instrucao COMMIT ou ROLLBACK.
+
+        # Transacoes implicitas:
+            - Uma nova e iniciada implicitamente quando a transacao anterior e concluida, mas cada transacao e explicitamente concluida com uma instrucao COMMIT ou ROLLBACK.
+        
+
+    __COMO__CRIAR__UMA__TRANSACTION__
+
+        -> Para criar uma transacao, voce deve seguir os seguintes passos:
+
+            1. Iniciar a transacao com a instrucao BEGIN TRANSACTION
+            2. Executar as instrucoes SQL que voce deseja incluir na transacao
+            3. Confirmar a transacao com a instrucao COMMIT TRANSACTION
+            4. Reverter a transacao com a instrucao ROLLBACK TRANSACTION
+
+        __EXEMPLO__:
+
+            BEGIN TRANSACTION
+                UPDATE TblFunc
+                    SET Salario = Salario * 1.10
+                WHERE SitFolha = 'A'
+
+            COMMIT TRANSACTION
+
+                -> O que fizemos foi iniciar uma transacao, e apos isso fizemos um update na tabela de funcionarios onde o salario e multiplicado por 1.10, e apos isso confirmamos a transacao;
+
+
+        __EXEMPLO__:
+
+            BEGIN TRANSACTION [Nome da Transacao]
+                UPDATE TblFunc
+                    SET SalarioDissidio = Salario + (Salario * 0.08)
+                
+            COMMIT TRANSACTION [Nome da Transacao]
+
+                -> O que fizemos foi iniciar uma transacao, e apos isso fizemos um update na tabela de funcionarios onde o salario e multiplicado por 1.08, e apos isso confirmamos a transacao;
+
+            -> Vamos supor que essa transacao nao deveria ser realmente esses 8%, ao inves de confirmar(COMMIT) a transacao vamos reverter ela, ou seja, vamos dar um rollback, vamos querer desfazer essa transacao sendo: 
+
+                ROLLBACK TRANSACTION [Nome da Transacao]
+
+                    -> Agora se selecionarmos a tabela novamente veremos que o valor do dissidio ira ficar igualmente o de antes, nao ira mudar nada;                          
+                
+
 
        
 
@@ -5962,6 +7086,48 @@
 
 
 
+96. // SQL SERVER - TRANSACTION - WITH(NOLOCK E READPAST) - PARTE 2 // 
+
+    -> Imagine uma situacao em que o script de um desenvolvedor ele esta fazendo varias coisas, onde tem uma series de linhas e bem depois disso ele realiza um commit ou faca um rollback, e ai nesse meio tempo um outro usuario/dev abre uma nova secao e comeca a fazer um select e executa isso, e ele ira executar normalmente, ai nos perguntamos? a query e rapida e porque da demora na execucao (podemos visualizar la embaixo no painel), porque ela esta executando sem parar? 
+
+        - E porque nos fizemos o primeiro lock, na secao anterior dizemos para o SQL-SERVER abra uma transacao, faca uma alteracao nessa transacao e nesse momento em que fizemos essa mudanca o sql-server foi la pegou a coluna e fez um lock nela, ou seja, ele bloqueou, ele esta bloqueando essa tabela como um todo, entao em outras sessoes em que tentarmos executar teremos isso, se voltarmos para aba anterior e der um F5 ele ira executar normalmente, so que se voltarmos na sessao criada e digitarmos 'select @@TRANCOUNT' veremos que nao tera nenhuma transacao nessa sessao, entao o porque disso? porque o sql server quando abrimos uma transacao ele abre na sessao em que estamos, e se abrirmos outra sessao ele nao ira ver essa transacao, somente quando COMMITARMOS essa mudanca na aba em que ela foi realizada, sera liberado para outra aba;
+        
+        # Ai nos perguntamos todas vez em que abrirmos uma transacao fazer um lock pegar uma tabela e fazer exclusividade nela, nao vamos consegir fazer nada?
+
+            -> Depende para isso temos dois recursos que teremos que usar com sabedoria, vamos supor em que uma aba criaremos o codigo utilizado na ultima aula (95), abrimos uma transacao e executamos a query sem commitar, na outra aba tentaremos utilizar um select, para isso vimos que nao e possivel, mas existe um comando que temos que utilizar com muita sabedoria que e: 
+
+                SELECT * 
+                    FROM TblFunc WITH(NOLOCK)
+
+                    -> Ao lado da tabela temos que adicionar esse comando WITH(NOLOCK), o que esta dizendo ai e, sql server me retorne os dados dessa tabela em que nao tenha registros locados ou bloqueados independentemente se tem uma transacao esperando para ser commitada ou que tenha um rollback, mas queremos retornar tudo, quando fazemos isso veremos que o resultado ele ja sera o valor refletido desse update, ou seja ele foi atualizado, se dermos um rollback veremos que ele ira retornar para o valor inicial;
+
+                !! Qual e o ponto que temos que ter de antecao? 
+                    -> Dependendo de quem peca essa query, ou relatorio, dependendo para quem vai esse registro teremos que explicar para o cara e teremos que explicar e analisar se faz sentido ele ter o valor antes da transacao ou que ele veja o valor idependentemento do valor ser atualizada ou nao; 
+
+        __COMANDO__READPAST
+
+            -> O que o readpast ira fazer? 
+                - Nos aplicamos a aplicamos a atualizacao para registro do 1 ao 100, ou seja (BETWEEN 1 AND 100), quando executarmos esse readpast, ele ira trazer a partir do registro seguinte, que no caso sera a partir 100, ou seja 101, o que ele faz e que ele pula os registros que estao em lock dessa forma ele ira trazer a tabela como um todo sem os registros que estao lockados
+
+
+                _ABA_PRINCIPAL 
+
+                    BEGIN TRANSACTION NomeDaTransacao
+                        SELECT @@TRANCOUNT
+
+                            UPDATE TblFuncAux
+                                SET SalarioDissidio = SalarioDissidio * 1.08
+                            WHERE BusinessEntityID BETWEEN 1 AND 100
+
+                    COMMIT TRANSACTION NomeDaTransacao
+
+            
+                _ABA_SECUNDARIA_
+
+                    SELECT * 
+                        FROM TblAux WITH(READPAST)
+                        
+                        --> Ele ira trazer a partir do registro 101, isso vai de sitema para sistema do que utilizar;
 
 
 
@@ -5972,6 +7138,148 @@
 
 
 
+97. // SQL SERVER - TRANSACTION - VARIAVEL, TABELA TEMPORARIA LOCAL E GLOBAL - PARTE 3 //
+
+    _EXEMPLO_VARIAVEL_TABELA:
+
+        BEGIN 
+            DECLARE @TblData TABLE (
+                IdData INT PRIMARY KEY IDENTITY(1, 1),
+                Data DATE NOT NULL
+            )
+
+            BEGIN TRANSACTION TransacaoVariavel 
+
+                INSERT INTO @TblData 
+                    VALUES ('1991-04-12');
+
+            COMMIT TRANSACTION TransacaoVariavel
+            --ROLLBACK TRANSACTION TransacaoVariavel
+
+            SELECT * 
+                FROM @TblData
+        END 
+             
+            -> Vamos imaginar que criamos essa transaction e criamos uma tabela alocada em uma variavel e fizemos o insert nela, vamos pensar que commitamos ela e apos isso demos um rollback para reverter as funcionalidades para o passado, sera que o insert nao iria aparecer mais? 
+
+                REPOSTA: O insert iria aparecer sim, e porque isso? porque quando trabalhamos com variaveis do tipo tabela nao existe o conceito de transacao como e um objeto temporario criado em tempo de execucao, nao e aplicado esse contexto de trasacao, dito isso, e uma regra do sql server;
+
+
+
+    _EXEMPLO_TABELA_TEMPORARIA
+
+        BEGIN 
+            DROP IF EXISTS #TblData
+
+            CREATE OR ALTER TABLE #TblData TABLE (
+                IdData INT PRIMARY KEY IDENTITY(1, 1),
+                Data DATE NOT NULL
+            )
+
+            BEGIN TRANSACTION TransacaoVariavel 
+
+                INSERT INTO #TblData 
+                    VALUES ('1991-04-12');
+
+            COMMIT TRANSACTION TransacaoVariavel
+            --ROLLBACK TRANSACTION TransacaoVariavel
+
+            SELECT * 
+                FROM #TblData
+        END 
+
+            -> Vimos que abrimos essa transacao e fizemos o insert, apos isso ele se mostrou na tabela, ate ai tudo certo, iremos commitar essa transacao e apos isso por motivos de teste iremos fazer um ROLLBACK, e veremos que a transacao sera desfeita e o mesmo aconteceria se fosse um COMMIT, e se ele respeitou em uma tabela temporaria ele tambem iria respeitar em uma tabela temporaria global;
+             
+            
+
+       
+
+
+
+
+
+
+98. // STORED PROCEDURE, TRY_CATCH, TRANSACTIONS -  PARTE 1 // 
+
+    DROP TABLE IF EXISTS dbo.TblCabecalhoNotaFiscal
+    GO
+
+    DROP IF EXISTS dbo.TblDetalheNotaFiscal
+    GO
+
+    CREATE TABLE dbo.TblCabecalhoNotaFiscal (
+        IdNota INT PRIMARY KEY IDENTITY(1,1),
+        CodNota INT,
+        DtInsercacao DATETIME
+    )
+    GO
+
+    CREATE TABLE dbo.TblDetalheNotaFiscal (
+        IdNota INT PRIMARY KEY IDENTITY(1,1),
+        CodNota INT,
+        DtInsercacao DATETIME
+    )   
+
+        -> Criamos duas tabelas, como exemplo do mundo real utilizando notas fiscais, uma tabela que guarda o cabecalho de uma nota fiscal, ou seja, dados um pouco mais macros de uma nota fiscal, varias empresas aderem esse 
+
+
+    __EXEMPLO__: 
+
+    CREATE OR ALTER PROCEDURE dbo.procValidaInsercao (
+        WITH ENCRYPTION
+    AS  
+        BEGIN 
+            SET NOCOUNT ON;
+
+            INSERT INTO dbo.TblCabecalhoNotaFiscal(CodNota, DtInsercacao)
+                VALUES (TRY_CAST( RAND() * 1000 AS INT) , GETDATE());
+            
+            --MUITOS CODIGOS 
+
+            WAITFOR DELAY '00:00:20'
+
+            INSERT INTO dbo.TblDetalheNotaFiscal(CodNota, DtInsercacao)
+                VALUES (TRY_CAST( RAND() * 1000 AS INT) , GETDATE());
+        END
+    )
+
+    EXEC dbo.procValidaInsercao  
+
+        -> Estamos criando uma procedure que ira inserir um valor na tabela de cabecalho de nota fiscal, e estamos utilizando o TRY_CAST para tentar converter um valor para inteiro, e estamos utilizando o GETDATE para pegar a data atual, apos isso vamos imaginar que tenha um sequencia de codigos, de maneira que o proximo insert ao inves de ser o cabecalho da nota ele ira pegar o detalhe da nota fiscal, por causa da grande quantidade de codigo iremos colocar um delay para que seja executado;
+
+
+        => Para que seja testado executamos o codigo e antes de dar os 20 segundos cancelamos a execucao, isso ira fazer com que a execucao seja cancelada, nao fazendo a segunda insercao, isso poderia acontecer de forma rotineira, como por exemplo a luz poderia cair e com isso perderiamos toda a execucao, com isso temos que tratar esses erros;                
+
+
+    ATUALIZANDO...
+
+        CREATE OR ALTER PROCEDURE dbo.procValidaInsercao (
+            WITH ENCRYPTION
+        AS  
+            BEGIN TRY
+                SET NOCOUNT ON;
+
+                INSERT INTO dbo.TblCabecalhoNotaFiscal(CodNota, DtInsercacao)
+                    VALUES (TRY_CAST( RAND() * 1000 AS INT) , GETDATE());
+                
+                --MUITOS CODIGOS 
+
+                WAITFOR DELAY '00:00:20'
+
+                INSERT INTO dbo.TblDetalheNotaFiscal(CodNota, DtInsercacao)
+                    VALUES (TRY_CAST( RAND() * 1000 AS INT) , GETDATE());
+            END TRY 
+
+            BEGIN CATCH 
+                ROLLBACK;
+            END CATCH
+        )
+
+        EXEC dbo.procValidaInsercao  
+
+        SELECT * FROM dbo.TblCabecalhoNotaFiscal
+
+        -> O que estamos fazendo ai e adicionar um try-catch ou seja, ele tenta realizar a operacao caso ocorra algum erro ele ira capturar e tratar ele de forma que seja um rollback, que no caso ele ira deixar o sistema como estava antes.
 
 
 
@@ -5981,6 +7289,100 @@
 
 
 
+
+99. // SQL SERVER - STORED PROCEDURE, TRY_CATCH, TRANSACTION - PARTE 2 //
+
+    -> O que aconteceu antes foi o seguinte, criamos uma procedure que iria inserir um valor na tabela de cabecalho de nota fiscal, e estamos utilizando o TRY_CAST para tentar converter um valor para inteiro, e estamos utilizando o GETDATE para pegar a data atual, apos isso vamos imaginar que tenha um sequencia de codigos, de maneira que o proximo insert ao inves de ser o cabecalho da nota ele ira pegar o detalhe da nota fiscal, por causa da grande quantidade de codigo iremos colocar um delay para que seja executado.
+
+        -> So que ha um problema, imagina que quando estiver executando essa procedure e apos 10 segundos a luz cai, o que acontece? perdemos toda a execucao, e com isso temos que tratar esses erros, e para isso temos que utilizar o try-catch, que e uma estrutura de controle que nos permite capturar erros que ocorrem durante a execucao de um bloco de codigo e trata-los de forma adequada, so que o catch esta depois do delay que no caso iria ocasionar a nem executalo, entao nem teria como capturar o erro, nessa aula veremos uma forma de tratar isso;vn
+
+
+    CREATE OR ALTER PROCEDURE dbo.procValidaInsercao (
+            WITH ENCRYPTION
+        AS  
+            BEGIN TRY
+                BEGIN TRANSACTION     
+                    SET NOCOUNT ON;
+
+                    INSERT INTO dbo.TblCabecalhoNotaFiscal(CodNota, DtInsercacao)
+                        VALUES (TRY_CAST( RAND() * 1000 AS INT) , GETDATE());
+                    
+                    --MUITOS CODIGOS 
+
+                    WAITFOR DELAY '00:00:20'
+
+                    INSERT INTO dbo.TblDetalheNotaFiscal(CodNota, DtInsercacao)
+                        VALUES (TRY_CAST( RAND() * 1000 AS INT) , GETDATE());
+                COMMIT TRANSACTION T1;
+            END TRY 
+
+            BEGIN CATCH 
+                ROLLBACK;
+            END CATCH
+        )
+
+        EXEC dbo.procValidaInsercao  
+
+        SELECT * FROM dbo.TblCabecalhoNotaFiscal
+
+
+        -> O que fizemos agora foi adicionar um transaction, mas se rodar veremos vai continuar dando o mesmo problema, o que ele fez ai foi abrir a transacao, fazer o insert na primeira tabela ficou aguardando passar 20 segundo para fazer o segundo insert, so que ele nao chegou no commit transaction, ele permanece nao chegando la o que acaba sendo muito normal em um codigo muito grande, vemos que isso ficara com uma transacao em aberta, ela nao commita mesmo tendo no codigo, iniciamos a tratativa de erro e explicitamos a transacao so que ela nao foi commitada, com isso temos um problema maior que no caso temos uma transacao em aberto nessa sessao ai, mas existe uma forma de sanar esses problemas, colocando um comando apos o set nocount on, exemplo: 
+
+            -> SET NOCOUNT, 
+                   XACT_ABORT ON;
+
+                   -> o que ele ira fazer? ele vai explicitar para o sql server o seguinte, sql server reverte para gente automaticamente qualquer transacao atual, que por acaso tenha gerado um erro em tempo de execucao, aqui de fato quando clicamos em cancelar em tempo de execucao da proc, nos temos um erro , mas e um erro que vai alem do sql server uma acao externa;
+
+            -> Ou seja, abrimos e commitamos uma transacao dentro do begin try, so que tem uma transacao que foi aberta e ela nao chegou no contexto de baixo, begin catch, se algo foi cancelado temos que prever isso logo de cara, entao desfaca(XACT_ABORT) para mim essa transacao aqui se for gerado algum erro;
+
+            -> podemos fazer um controle tambem no BEGIN CATCH: 
+
+
+            BEGIN CATCH 
+                IF @@TRANCOUNT > 0
+                BEGIN 
+                    ROLLBACK;
+                END
+            END CATCH
+
+                -> Isso certifica que se tiver alguma transacao aberta nessa sessao ele nao ira ser executado;
+
+
+        ATUALIZANDO...
+
+        CREATE OR ALTER PROCEDURE dbo.procValidaInsercao (
+            WITH ENCRYPTION
+        AS  
+            BEGIN TRY
+                BEGIN TRANSACTION     
+                    SET NOCOUNT, 
+                        XACT_ABORT ON;
+
+                    INSERT INTO dbo.TblCabecalhoNotaFiscal(CodNota, DtInsercacao)
+                        VALUES (TRY_CAST( RAND() * 1000 AS INT) , GETDATE());
+                    
+                    --MUITOS CODIGOS 
+
+                    WAITFOR DELAY '00:00:20'
+
+                    INSERT INTO dbo.TblDetalheNotaFiscal(CodNota, DtInsercacao)
+                        VALUES (TRY_CAST( RAND() * 1000 AS INT) , GETDATE());
+                COMMIT TRANSACTION T1;
+            END TRY 
+
+            BEGIN CATCH 
+                IF @@TRANCOUNT > 0
+                BEGIN 
+                    ROLLBACK;
+                END
+            END CATCH
+        )
+
+        EXEC dbo.procValidaInsercao  
+
+        SELECT * FROM dbo.TblCabecalhoNotaFiscal
+
+            -> Com isso vemos que a proc esta totalmente segura, se ocasionar algum erro o XACT_ABORT ira cancelar a transacao e o @@TRANCOUNT ira verificar se existe alguma transacao aberta, se tiver ele ira cancelar a transacao, e com isso, a regra de negocio aplicada foi tem que inserir nas duas tabelas, caso nao consiga inserir das duas nao insira em nenhuma
 
 
 
@@ -6305,115 +7707,12 @@
 
 
 
-    // INDICES (CREATE INDEX) //
-
-        Uma estrutura fisica opcionais de banco de dados criadas para melhorar a performace no acesso.
-
-        -> Cabera ao otimizador do SGBD optar ou nao pelo uso do indice (DML nao-procedural no SQL).
-
-        -> na falta de indices, o SGBD faz uma varredura completa da tabela (full table scan)
-
-        -> Os comandos SELECT que envolvem ORDER BY (ordenacao) tentem a ficar mais rapidos apos a criacao de indices pelos campos de ordenacao.
-
-        -> Os indices devem ser criados com prudencia 
-
-
-        # Para escolher bem os indices, analisa-se quais campos da tabela participam das expressoes WHERE de comandos de SELECT, UPDATE e DELETE. (indice e como se fosse um ponteiro).
-
-        # No entanto, o uso excessivo de indice pode ser prejudicial ao desempenho, pois todo comando que atualiza a tabela origem (INSERT, UPDATE, DELETE) pode gerar uma alteracao no indice.
-
-        # os indicies geralmente sao definidos em conjunto pelo DBA e pelo desenvolvedor / engenheiro de software, que conhecem quais sao as consultas mais criticas que sao mais frequentes e envolvem um maior volume de acesso a dados. 
-
-        # Quando as linhas sao adicionadas, alteradas ou apagadas, todos os indices sao atualizados sem necessidade de acao externa alguma, indices sao partes importantes do "tuning" do SGBD.
-
-        # Os indices sao criados usualmente para as chaves primarias e para chaves estrangeiras, visando agilizar os comandos que envolvem juncao de tabelas.
-
-        - O indice deve ser o mais seletivel possivel: 
-        
-            -> exemplo: nosso sistema de representacao comercial, sua empresa atua em MG principalmente, onde temos 10k de clientes, onde temos 9500 em MG, e o resto em outros estados, ai resolvemos criar um indice por estado !! entao o que vai acontecer e que sera um indice pouco seletivo, pois a grande parte esta alocada em minas, filtra pouco, (e bom criar indices em colunas que variam muito);
-
-
-        # Colunas muito usadas em clausulas WHERE tambem sao boas candidatas para indice;
-
-        # Os indices podem ou nao ser unicos (UNIQUE)
-
-        # O indice e unico quando nao se permite repeticoes no conjunto de campos que compoe o indice. Assim sendo, o indice pela chave primaria e sempre UNIQUE.
-
-        # Em alguns SGBDs, este indice pela chave primaria ja e gerado automaticamente.
-
-
-
-        SINTAXE: 
-
-            CREATE [UNIQUE] [CLUSTERED | NONCLUSTERED] INDEX
-                Nome-do-indice ON tabela (coluna ou lista-de-colunas)
-            
-            -> Se quiser que o indice seja unico devemos escrever UNIQUE na frente dele, colocamos o nome do incice, apos colocamos ON para se referenciar em qual tabela criar o indice ( em alguns SGBDs existe a clusterizacao que quer dizer ordenacao fisica, ou seja se criarmos um indice clusterizado ele vai buscar fazendo com que a tabela original os registros estejam fisicamente na ordem que deseja, caso seja nao clusterizado iremos ter uma estrutura paralela que e o indice que aponta para minha tabela original );
-
-            ex: 
-
-                CREATE INDEX IX_salario ON Funcionarios (CodDepto, Salario)  -> nao clusterizado 
-
-                CREATE UNIQUE INDEX CLUSTERED IX_Funcionarios ON Funcionario (Matricula) -> Clusterizado
-
-
-            Quando criamos um indice podemos tambem dizer se eles estao em ordem ascendente ou drecescente, no exemplo abaixo primeiro ordena por extado e depois por cidade:
-
-            CREATE INDEX Ind_Regional ON Clientes (Estado Asc, Cidade Asc);
-
-
-            caso nao queiremos mais o indice podemos tambem dar o comando de exclusao: 
-
-            DROP INDEX Nome-do-indice
+    
 
 
 
 
-    //  VISOES (CREATE VIEW)  //
-
-
-        -> A visao e uma estritura logica que e montada dinamicamente a partir de um SELECT.
-
-        -> Atraves da visao, consegue-se selecionar linhas e colunas desejadas de uma tabela ou mais tabelas e dar um nome logico (nome da visao) para o resultado.
-
-            -> exemplo: Imagina que temos uma tabela funcionario, onde temos mais de 50 campos, incluindo nome, endereco, telefone, salario, codigo do cardo do funcionario... e queremos produzir uma lista que contem o nome, nome do departamento e tambem o numero do ramal, vamos obter informacoes da tabela funcionario, mas nao precisamos saber o salario para colocar na lista da empresa e uma informacao confidencial, entao podemos criar uma visao que faz a juncao da tabela departamento e tabela funcionario, e da tabela funcionario nao precisamos ver todas as colunas para saber o ramal dela.
-
-        # Utiliza - se visao para armazenar os selects mais frequentes no proprio banco de dados. 
-
-        # SGBD nao armazena as linhas resultantes da execucao da visao.
-
-        # A seguranca  e uma das vantagens, pois pode-se dar permissao de acesso para a visao e nao para a tabela inteira.
-
-        # Com isso, os programas aplicativos ou usuario finais podem acessar a visao, simplificando a sintaxe de comando.
-
-        # As visoes podem ser encadeadas, mas isto provoca uma queda de performace.
-
-            SINTAXE : 
-                --> So para reforcar, a visao e um comando de DDL uma estrutura logica do banco de dados, mas toda visao tem que ser associada ha um comando de SELECT que e um comando de DML.
-
-                CREATE VIEW nome-da-visao (apelidos para os campos - opcional)
-                    AS SELECT 
-
-                    exemplo: 
-                        CREATE VIEW SalarioDepto (Depto, Media_Salarial, Numero)
-                            AS SELECT Depto, AVG(Salario), COUNT(*)
-                            FROM funcionarios
-                        GROUP BY Depto
-
-                        -> AS SELECT ele faz basicamente agrupa os  funcionarios por departamento calculando a media e a quantidade de funcionarios
-
-
-            PODE SE CRIAR UMA VISAO DE UMA VISAO: 
-
-                        CREATE VIEW MaioresSalarios
-                            AS SELECT * FROM SalarioDepto
-                        WHERE Media_Salarial > 8000
-
-                        --> explicacao: criamos uma view de outra, essa dai seleciona de SalarioDepto que e uma view, para quem tem uma media salarial acima de 8000 mil reais
-
-            
-            REMOCAO DA VISAO:
-                    DROP VIEW staff;
+    
 
 
 
